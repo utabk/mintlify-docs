@@ -29,34 +29,50 @@ dokrypt up
 
 ## Generated Files
 
-```
-my-defi/
-├── dokrypt.yaml
-├── foundry.toml
-├── README.md
-├── contracts/
-│   ├── token/DeFiToken.sol
-│   ├── amm/
-│   │   ├── Factory.sol
-│   │   ├── Pair.sol
-│   │   └── Router.sol
-│   ├── lending/
-│   │   ├── LendingVault.sol
-│   │   └── InterestModel.sol
-│   ├── staking/
-│   │   └── StakingRewards.sol
-│   └── oracle/
-│       └── PriceOracle.sol
-├── test/
-│   ├── amm/Factory.t.sol
-│   ├── amm/Router.t.sol
-│   ├── lending/LendingVault.t.sol
-│   └── staking/StakingRewards.t.sol
-└── scripts/
-    ├── deploy-amm.js
-    ├── deploy-lending.js
-    └── deploy-staking.js
-```
+<Tree>
+  <Tree.Folder name="my-defi" defaultOpen>
+    <Tree.File name="dokrypt.yaml" />
+    <Tree.File name="foundry.toml" />
+    <Tree.File name="README.md" />
+    <Tree.Folder name="contracts" defaultOpen>
+      <Tree.Folder name="token" defaultOpen>
+        <Tree.File name="DeFiToken.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="amm" defaultOpen>
+        <Tree.File name="Factory.sol" />
+        <Tree.File name="Pair.sol" />
+        <Tree.File name="Router.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="lending" defaultOpen>
+        <Tree.File name="LendingVault.sol" />
+        <Tree.File name="InterestModel.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="staking" defaultOpen>
+        <Tree.File name="StakingRewards.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="oracle" defaultOpen>
+        <Tree.File name="PriceOracle.sol" />
+      </Tree.Folder>
+    </Tree.Folder>
+    <Tree.Folder name="test" defaultOpen>
+      <Tree.Folder name="amm" defaultOpen>
+        <Tree.File name="Factory.t.sol" />
+        <Tree.File name="Router.t.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="lending" defaultOpen>
+        <Tree.File name="LendingVault.t.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="staking" defaultOpen>
+        <Tree.File name="StakingRewards.t.sol" />
+      </Tree.Folder>
+    </Tree.Folder>
+    <Tree.Folder name="scripts" defaultOpen>
+      <Tree.File name="deploy-amm.js" />
+      <Tree.File name="deploy-lending.js" />
+      <Tree.File name="deploy-staking.js" />
+    </Tree.Folder>
+  </Tree.Folder>
+</Tree>
 
 ## Contracts
 

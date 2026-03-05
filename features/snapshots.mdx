@@ -46,15 +46,13 @@ dokrypt snapshot restore after-deploy
 
 ## Snapshot Lifecycle
 
-```
-┌─────────┐     ┌────────┐     ┌─────────┐     ┌──────────┐
-│  save   │ ──▶ │  list  │ ──▶ │ restore │ ──▶ │  delete  │
-└─────────┘     └────────┘     └─────────┘     └──────────┘
-     │                              │
-     ▼                              ▼
-┌─────────┐                   ┌──────────┐
-│ export  │                   │  import  │
-└─────────┘                   └──────────┘
+```mermaid
+graph LR
+    A["save"] --> B["list"]
+    B --> C["restore"]
+    C --> D["delete"]
+    A --> E["export"]
+    C --> F["import"]
 ```
 
 ## Commands
@@ -153,12 +151,14 @@ dokrypt snapshot restore fully-configured
 
 Snapshots are stored at:
 
-```
-~/.dokrypt/snapshots/<project-name>/
-├── my-snapshot.json        # Metadata
-├── before-deploy.json      # Metadata
-└── ...
-```
+<Tree>
+  <Tree.Folder name="snapshots" defaultOpen>
+    <Tree.Folder name="my-project" defaultOpen>
+      <Tree.File name="my-snapshot.json" />
+      <Tree.File name="before-deploy.json" />
+    </Tree.Folder>
+  </Tree.Folder>
+</Tree>
 
 Each metadata file contains:
 

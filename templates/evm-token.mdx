@@ -25,25 +25,45 @@ dokrypt up
 
 ## Generated Files
 
-```
-my-token/
-├── dokrypt.yaml
-├── foundry.toml
-├── README.md
-├── contracts/
-│   ├── token/ManagedToken.sol
-│   ├── vesting/VestingSchedule.sol
-│   ├── staking/StakeRewards.sol
-│   └── multisig/MultiSig.sol
-├── test/
-│   ├── token/ManagedToken.t.sol
-│   ├── vesting/VestingSchedule.t.sol
-│   ├── staking/StakeRewards.t.sol
-│   └── multisig/MultiSig.t.sol
-└── scripts/
-    ├── deploy-token.js
-    └── setup-vesting.js
-```
+<Tree>
+  <Tree.Folder name="my-token" defaultOpen>
+    <Tree.File name="dokrypt.yaml" />
+    <Tree.File name="foundry.toml" />
+    <Tree.File name="README.md" />
+    <Tree.Folder name="contracts" defaultOpen>
+      <Tree.Folder name="token" defaultOpen>
+        <Tree.File name="ManagedToken.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="vesting" defaultOpen>
+        <Tree.File name="VestingSchedule.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="staking" defaultOpen>
+        <Tree.File name="StakeRewards.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="multisig" defaultOpen>
+        <Tree.File name="MultiSig.sol" />
+      </Tree.Folder>
+    </Tree.Folder>
+    <Tree.Folder name="test" defaultOpen>
+      <Tree.Folder name="token" defaultOpen>
+        <Tree.File name="ManagedToken.t.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="vesting" defaultOpen>
+        <Tree.File name="VestingSchedule.t.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="staking" defaultOpen>
+        <Tree.File name="StakeRewards.t.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="multisig" defaultOpen>
+        <Tree.File name="MultiSig.t.sol" />
+      </Tree.Folder>
+    </Tree.Folder>
+    <Tree.Folder name="scripts" defaultOpen>
+      <Tree.File name="deploy-token.js" />
+      <Tree.File name="setup-vesting.js" />
+    </Tree.Folder>
+  </Tree.Folder>
+</Tree>
 
 ## Contracts
 

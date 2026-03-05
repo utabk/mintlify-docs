@@ -48,19 +48,15 @@ dokrypt up
 
 Dokrypt runs on top of Docker (or Podman). Each chain and service runs as a container, connected via Docker networks. The CLI orchestrates container lifecycle, health checks, dependency ordering, and networking.
 
-```
-┌─────────────────────────────────────────┐
-│                dokrypt CLI              │
-├─────────────────────────────────────────┤
-│  Engine (orchestration)                 │
-│  ├── Chain Manager (Anvil/Hardhat/Geth) │
-│  ├── Service Orchestrator               │
-│  ├── Network Manager                    │
-│  ├── Plugin Manager                     │
-│  └── Event Bus                          │
-├─────────────────────────────────────────┤
-│  Container Runtime (Docker / Podman)    │
-└─────────────────────────────────────────┘
+```mermaid
+graph TD
+    A["dokrypt CLI"] --> B["Engine (Orchestration)"]
+    B --> C["Chain Manager — Anvil / Hardhat / Geth"]
+    B --> D["Service Orchestrator"]
+    B --> E["Network Manager"]
+    B --> F["Plugin Manager"]
+    B --> G["Event Bus"]
+    A --> H["Container Runtime — Docker / Podman"]
 ```
 
 ## Supported Chains

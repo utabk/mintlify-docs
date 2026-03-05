@@ -17,22 +17,14 @@ When you run `dokrypt up`, Dokrypt:
 4. **Runs health checks** — Waits for all containers to report healthy
 5. **Saves state** — Container IDs and ports saved to `~/.dokrypt/state/`
 
-```
-Docker Network: dokrypt-my-project
-┌─────────────────────────────────┐
-│                                 │
-│  ┌──────────┐  ┌─────────────┐ │
-│  │ ethereum │  │    ipfs     │ │
-│  │ (anvil)  │  │  port:5001  │ │
-│  │ port:8545│  └─────────────┘ │
-│  └──────────┘                   │
-│                                 │
-│  ┌──────────┐  ┌─────────────┐ │
-│  │blockscout│  │   oracle    │ │
-│  │ port:4000│  │ (chainlink) │ │
-│  └──────────┘  └─────────────┘ │
-│                                 │
-└─────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph net["Docker Network: dokrypt-my-project"]
+        eth["ethereum (anvil)<br/>port: 8545"]
+        ipfs["ipfs<br/>port: 5001"]
+        bs["blockscout<br/>port: 4000"]
+        oracle["oracle (chainlink)"]
+    end
 ```
 
 ## Container Runtime

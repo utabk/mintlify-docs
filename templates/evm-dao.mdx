@@ -25,36 +25,47 @@ dokrypt up
 
 ## Generated Files
 
-```
-my-dao/
-├── dokrypt.yaml
-├── foundry.toml
-├── README.md
-├── contracts/
-│   ├── token/VotingToken.sol
-│   └── governance/
-│       ├── Governor.sol
-│       ├── Timelock.sol
-│       └── Treasury.sol
-├── test/
-│   ├── token/VotingToken.t.sol
-│   └── governance/
-│       ├── Governor.t.sol
-│       ├── Timelock.t.sol
-│       └── Treasury.t.sol
-└── scripts/
-    ├── deploy-dao.js
-    └── create-proposal.js
-```
+<Tree>
+  <Tree.Folder name="my-dao" defaultOpen>
+    <Tree.File name="dokrypt.yaml" />
+    <Tree.File name="foundry.toml" />
+    <Tree.File name="README.md" />
+    <Tree.Folder name="contracts" defaultOpen>
+      <Tree.Folder name="token" defaultOpen>
+        <Tree.File name="VotingToken.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="governance" defaultOpen>
+        <Tree.File name="Governor.sol" />
+        <Tree.File name="Timelock.sol" />
+        <Tree.File name="Treasury.sol" />
+      </Tree.Folder>
+    </Tree.Folder>
+    <Tree.Folder name="test" defaultOpen>
+      <Tree.Folder name="token" defaultOpen>
+        <Tree.File name="VotingToken.t.sol" />
+      </Tree.Folder>
+      <Tree.Folder name="governance" defaultOpen>
+        <Tree.File name="Governor.t.sol" />
+        <Tree.File name="Timelock.t.sol" />
+        <Tree.File name="Treasury.t.sol" />
+      </Tree.Folder>
+    </Tree.Folder>
+    <Tree.Folder name="scripts" defaultOpen>
+      <Tree.File name="deploy-dao.js" />
+      <Tree.File name="create-proposal.js" />
+    </Tree.Folder>
+  </Tree.Folder>
+</Tree>
 
 ## Governance Lifecycle
 
-```
-┌──────────┐   ┌───────────┐   ┌──────┐   ┌─────────┐   ┌──────────┐   ┌─────────┐
-│ Propose  │──▶│  Voting   │──▶│ Vote │──▶│ Succeed │──▶│  Queue   │──▶│ Execute │
-│          │   │  Delay    │   │      │   │         │   │ Timelock │   │         │
-└──────────┘   └───────────┘   └──────┘   └─────────┘   └──────────┘   └─────────┘
-   1 block        Active       45818 blocks  Quorum met    1 day delay    Ready!
+```mermaid
+graph LR
+    A["Propose<br/><small>1 block</small>"] --> B["Voting Delay<br/><small>Active</small>"]
+    B --> C["Vote<br/><small>45818 blocks</small>"]
+    C --> D["Succeed<br/><small>Quorum met</small>"]
+    D --> E["Queue<br/><small>Timelock</small>"]
+    E --> F["Execute<br/><small>Ready!</small>"]
 ```
 
 1. **Propose** — A token holder creates a proposal (requires >= 100 tokens)

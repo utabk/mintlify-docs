@@ -73,12 +73,13 @@ Dokrypt resolves the configuration file in this order:
 
 Dokrypt stores runtime data in `~/.dokrypt/`:
 
-```
-~/.dokrypt/
-├── state/          # Project runtime state (container IDs, ports)
-├── snapshots/      # Saved chain state snapshots
-├── reports/        # Test results and gas reports
-├── plugins/        # Globally installed plugins
-├── marketplace/    # Installed marketplace templates
-└── templates/      # Custom templates
-```
+<Tree>
+  <Tree.Folder name=".dokrypt" defaultOpen>
+    <Tree.Folder name="state" />
+    <Tree.Folder name="snapshots" />
+    <Tree.Folder name="reports" />
+    <Tree.Folder name="plugins" />
+    <Tree.Folder name="marketplace" />
+    <Tree.Folder name="templates" />
+  </Tree.Folder>
+</Tree>

@@ -15,20 +15,24 @@ dokrypt init my-dapp --template evm-basic
 
 This creates a `my-dapp/` directory with:
 
-```
-my-dapp/
-├── dokrypt.yaml          # Environment configuration
-├── foundry.toml          # Solidity compiler settings
-├── contracts/
-│   ├── Counter.sol       # Simple counter contract
-│   └── SimpleToken.sol   # ERC-20 token contract
-├── test/
-│   ├── Counter.t.sol     # Counter tests
-│   └── SimpleToken.t.sol # Token tests
-├── scripts/
-│   └── deploy.js         # Deployment script
-└── README.md
-```
+<Tree>
+  <Tree.Folder name="my-dapp" defaultOpen>
+    <Tree.File name="dokrypt.yaml" />
+    <Tree.File name="foundry.toml" />
+    <Tree.Folder name="contracts" defaultOpen>
+      <Tree.File name="Counter.sol" />
+      <Tree.File name="SimpleToken.sol" />
+    </Tree.Folder>
+    <Tree.Folder name="test" defaultOpen>
+      <Tree.File name="Counter.t.sol" />
+      <Tree.File name="SimpleToken.t.sol" />
+    </Tree.Folder>
+    <Tree.Folder name="scripts" defaultOpen>
+      <Tree.File name="deploy.js" />
+    </Tree.Folder>
+    <Tree.File name="README.md" />
+  </Tree.Folder>
+</Tree>
 
 <Info>
   Use `dokrypt template list` to see all 5 available templates: `evm-basic`, `evm-token`, `evm-nft`, `evm-dao`, `evm-defi`.

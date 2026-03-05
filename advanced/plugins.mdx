@@ -98,12 +98,13 @@ dokrypt plugin create my-plugin
 
 Creates:
 
-```
-my-plugin/
-├── plugin.yaml   # Plugin manifest
-├── Dockerfile    # Container image (Alpine 3.19)
-└── README.md     # Documentation
-```
+<Tree>
+  <Tree.Folder name="my-plugin" defaultOpen>
+    <Tree.File name="plugin.yaml" />
+    <Tree.File name="Dockerfile" />
+    <Tree.File name="README.md" />
+  </Tree.Folder>
+</Tree>
 
 ### Plugin Environment
 

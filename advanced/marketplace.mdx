@@ -63,19 +63,23 @@ dokrypt template create my-defi-template
 
 ### 2. Add Your Files
 
-```
-my-defi-template/
-├── template.yaml           # Template metadata (required)
-├── dokrypt.yaml.tmpl       # Configuration template
-├── foundry.toml.tmpl       # Foundry config template
-├── README.md.tmpl          # README template
-├── contracts/              # Smart contracts
-│   └── MyContract.sol
-├── test/                   # Tests
-│   └── MyContract.t.sol
-└── scripts/                # Deployment scripts
-    └── deploy.js
-```
+<Tree>
+  <Tree.Folder name="my-defi-template" defaultOpen>
+    <Tree.File name="template.yaml" />
+    <Tree.File name="dokrypt.yaml.tmpl" />
+    <Tree.File name="foundry.toml.tmpl" />
+    <Tree.File name="README.md.tmpl" />
+    <Tree.Folder name="contracts" defaultOpen>
+      <Tree.File name="MyContract.sol" />
+    </Tree.Folder>
+    <Tree.Folder name="test" defaultOpen>
+      <Tree.File name="MyContract.t.sol" />
+    </Tree.Folder>
+    <Tree.Folder name="scripts" defaultOpen>
+      <Tree.File name="deploy.js" />
+    </Tree.Folder>
+  </Tree.Folder>
+</Tree>
 
 ### 3. Define Metadata
 

@@ -87,20 +87,24 @@ dokrypt init my-project --dir /home/user/projects
 
 The created directory structure depends on the template. For `evm-basic`:
 
-```
-my-project/
-├── dokrypt.yaml          # Environment configuration
-├── foundry.toml          # Solidity compiler settings
-├── README.md             # Project documentation
-├── contracts/
-│   ├── Counter.sol       # Counter contract
-│   └── SimpleToken.sol   # ERC-20 token
-├── test/
-│   ├── Counter.t.sol     # Counter tests (Foundry)
-│   └── SimpleToken.t.sol # Token tests (Foundry)
-└── scripts/
-    └── deploy.js         # Deployment script
-```
+<Tree>
+  <Tree.Folder name="my-project" defaultOpen>
+    <Tree.File name="dokrypt.yaml" />
+    <Tree.File name="foundry.toml" />
+    <Tree.File name="README.md" />
+    <Tree.Folder name="contracts" defaultOpen>
+      <Tree.File name="Counter.sol" />
+      <Tree.File name="SimpleToken.sol" />
+    </Tree.Folder>
+    <Tree.Folder name="test" defaultOpen>
+      <Tree.File name="Counter.t.sol" />
+      <Tree.File name="SimpleToken.t.sol" />
+    </Tree.Folder>
+    <Tree.Folder name="scripts" defaultOpen>
+      <Tree.File name="deploy.js" />
+    </Tree.Folder>
+  </Tree.Folder>
+</Tree>
 
 ## Errors
 
