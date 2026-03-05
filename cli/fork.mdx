@@ -1,0 +1,124 @@
+---
+title: "dokrypt fork"
+description: "Fork a live blockchain network for local testing."
+---
+
+## Usage
+
+```bash
+dokrypt fork [network] [flags]
+```
+
+## Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `network` | No | Network name or custom RPC URL |
+
+## Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--url` | `string` | — | Custom RPC URL to fork from |
+| `--block` | `uint64` | `0` | Fork at a specific block number (0 = latest) |
+| `--chain` | `string` | — | Target chain name (for multi-chain setups) |
+| `--accounts` | `int` | `10` | Number of accounts to fund |
+
+## Description
+
+Resets the local chain to a fork of a live blockchain network. After forking, your local environment has the complete state of the target network at the specified block — you can interact with all deployed contracts (Uniswap, Aave, etc.) as if you were on mainnet.
+
+### How It Works
+
+1. Resolves the network name to an RPC URL (or uses the custom `--url`)
+2. Calls `anvil_reset` (or `hardhat_reset`) with forking parameters
+3. Waits up to 120 seconds for the fork to complete
+4. Fetches the new chain ID and block number
+5. Funds the specified number of accounts with 10,000 ETH each
+
+## Supported Networks
+
+| Network | Aliases | Chain ID | RPC URL |
+|---------|---------|----------|---------|
+| Ethereum | `mainnet`, `ethereum` | 1 | `https://eth.llamarpc.com` |
+| Sepolia | `sepolia` | 11155111 | `https://rpc.sepolia.org` |
+| Goerli | `goerli` | 5 | `https://rpc.ankr.com/eth_goerli` |
+| Polygon | `polygon` | 137 | `https://polygon-rpc.com` |
+| Arbitrum | `arbitrum` | 42161 | `https://arb1.arbitrum.io/rpc` |
+| Optimism | `optimism` | 10 | `https://mainnet.optimism.io` |
+| Base | `base` | 8453 | `https://mainnet.base.org` |
+| BSC | `bsc` | 56 | `https://bsc-dataseed.binance.org` |
+| Avalanche | `avalanche` | 43114 | `https://api.avax.network/ext/bc/C/rpc` |
+
+## Examples
+
+### Fork Ethereum mainnet (latest block)
+
+```bash
+dokrypt fork mainnet
+```
+
+### Fork at a specific block
+
+```bash
+dokrypt fork mainnet --block 18500000
+```
+
+### Fork Polygon
+
+```bash
+dokrypt fork polygon
+```
+
+### Fork with a custom RPC URL
+
+```bash
+dokrypt fork --url https://your-alchemy-url.com/v2/API_KEY
+```
+
+### Fork with more funded accounts
+
+```bash
+dokrypt fork mainnet --accounts 20
+```
+
+### Fork a specific chain in a multi-chain setup
+
+```bash
+dokrypt fork arbitrum --chain l2
+```
+
+## Use Cases
+
+### Test against real DeFi protocols
+
+```bash
+dokrypt fork mainnet --block 18500000
+
+# Now you can interact with Uniswap, Aave, Compound, etc.
+# at the exact state of block 18,500,000
+```
+
+### Reproduce a mainnet bug
+
+```bash
+# Fork at the block just before the bug
+dokrypt fork mainnet --block 17999999
+
+# Impersonate the affected account
+dokrypt accounts impersonate 0xAffectedAddress...
+
+# Replay the transaction
+```
+
+### Test token integrations
+
+```bash
+dokrypt fork mainnet
+
+# Fund your test account with real USDC
+dokrypt chain set-balance 0xYourAddress... 1000
+
+# Impersonate a whale to get tokens
+dokrypt accounts impersonate 0xUSDCWhale...
+```

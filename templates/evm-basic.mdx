@@ -1,0 +1,125 @@
+---
+title: "evm-basic"
+description: "Beginner template with a Counter and ERC-20 token."
+---
+
+## Overview
+
+The simplest starting point for Web3 development. Includes two contracts — a Counter for learning state management and a SimpleToken ERC-20 — with full test suites.
+
+| | |
+|---|---|
+| **Difficulty** | Beginner |
+| **Category** | Basic |
+| **Chains** | Ethereum |
+| **Services** | None |
+| **License** | Apache-2.0 |
+
+## Quick Start
+
+```bash
+dokrypt init my-app --template evm-basic
+cd my-app
+dokrypt up
+```
+
+## Generated Files
+
+```
+my-app/
+├── dokrypt.yaml
+├── foundry.toml
+├── README.md
+├── contracts/
+│   ├── Counter.sol
+│   └── SimpleToken.sol
+├── test/
+│   ├── Counter.t.sol
+│   └── SimpleToken.t.sol
+└── scripts/
+    └── deploy.js
+```
+
+## Configuration
+
+```yaml
+version: "1"
+name: my-app
+
+settings:
+  runtime: docker
+  log_level: info
+  accounts: 10
+  account_balance: "10000"
+
+chains:
+  ethereum:
+    engine: anvil
+    chain_id: 31337
+    block_time: "2s"
+
+services: {}
+```
+
+## Contracts
+
+### Counter.sol
+
+A simple state management contract for learning the basics.
+
+**Storage:**
+- `uint256 public number` — The stored counter value
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `setNumber(uint256 newNumber)` | Public | Set the counter to a specific value |
+| `increment()` | Public | Increase counter by 1 |
+| `decrement()` | Public | Decrease counter by 1 (reverts if 0) |
+| `reset()` | Public | Reset counter to 0 |
+
+**Events:**
+- `NumberChanged(uint256 newNumber)` — Emitted on every state change
+
+### SimpleToken.sol
+
+A minimal ERC-20 token implementation.
+
+**Constructor:**
+```solidity
+constructor(string memory name, string memory symbol, uint256 initialSupply)
+```
+
+Mints `initialSupply` tokens to the deployer.
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `transfer(address to, uint256 amount)` | Public | Transfer tokens |
+| `approve(address spender, uint256 amount)` | Public | Approve spending |
+| `transferFrom(address from, address to, uint256 amount)` | Public | Transfer on behalf |
+| `mint(address to, uint256 amount)` | Owner only | Mint new tokens |
+| `balanceOf(address account)` | View | Get token balance |
+| `allowance(address owner, address spender)` | View | Get allowance |
+
+**Constants:** 18 decimals
+
+## Deployment
+
+```bash
+npx hardhat run scripts/deploy.js --network localhost
+```
+
+The script deploys both Counter and SimpleToken and outputs their addresses.
+
+## Testing
+
+```bash
+dokrypt test run
+```
+
+Tests cover:
+- Counter: increment, decrement, setNumber, reset, underflow revert
+- SimpleToken: transfer, approve, transferFrom, mint, access control

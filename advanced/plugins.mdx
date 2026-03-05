@@ -1,0 +1,160 @@
+---
+title: "Plugins"
+description: "Extend Dokrypt with custom plugins — hooks, commands, and services."
+---
+
+## Overview
+
+Plugins extend Dokrypt's functionality with custom lifecycle hooks, CLI commands, and services. Plugins can be installed globally or per-project.
+
+## Plugin Types
+
+| Type | Description |
+|------|-------------|
+| `container` | Runs as a Docker container alongside your services |
+| `binary` | Runs as a native binary on the host machine |
+
+## Installation
+
+```bash
+# Install from registry
+dokrypt plugin install gas-reporter
+
+# Install a specific version
+dokrypt plugin install gas-reporter --version 1.0.0
+
+# Install globally (available to all projects)
+dokrypt plugin install gas-reporter --global
+```
+
+**Storage locations:**
+- Local: `./plugins/` (project directory)
+- Global: `~/.dokrypt/plugins/`
+
+## Plugin Manifest
+
+Every plugin has a `plugin.yaml` manifest:
+
+```yaml
+name: gas-reporter
+version: "1.0.0"
+description: "Detailed gas usage reporting"
+author: dokrypt
+license: MIT
+type: container
+
+container:
+  image: gas-reporter:latest
+  ports:
+    http: 3100
+  environment:
+    CHAIN_URL: "http://ethereum:8545"
+  depends_on: [ethereum]
+
+hooks:
+  on_up: true
+  on_down: true
+  on_test_end: true
+
+commands:
+  - name: gas-report
+    description: "Generate gas report"
+```
+
+## Lifecycle Hooks
+
+Plugins can subscribe to these lifecycle events:
+
+| Hook | Triggered When | Use Cases |
+|------|---------------|-----------|
+| `on_init` | Dokrypt initializes | Setup, configuration validation |
+| `on_up` | `dokrypt up` completes | Start monitoring, register listeners |
+| `on_down` | `dokrypt down` starts | Cleanup, save state |
+| `on_transaction` | A transaction executes | TX logging, gas tracking |
+| `on_block_mined` | A new block is mined | Block monitoring, indexing |
+| `on_contract_deployed` | Contract deployment detected | ABI registration, verification |
+| `on_test_end` | Test suite completes | Report generation, notifications |
+
+## Plugin Configuration
+
+Configure plugins in `dokrypt.yaml`:
+
+```yaml
+plugins:
+  gas-reporter:
+    version: "1.0.0"
+    config:
+      output: "gas-report.json"
+      format: "table"
+```
+
+## Creating a Plugin
+
+### Scaffold
+
+```bash
+dokrypt plugin create my-plugin
+```
+
+Creates:
+
+```
+my-plugin/
+├── plugin.yaml   # Plugin manifest
+├── Dockerfile    # Container image (Alpine 3.19)
+└── README.md     # Documentation
+```
+
+### Plugin Environment
+
+Plugins receive an environment interface with:
+
+| Method | Description |
+|--------|-------------|
+| `ProjectName()` | Current project name |
+| `ChainRPCURL(name)` | RPC URL for a chain |
+| `ServiceURL(name)` | URL for a service |
+
+### Publishing
+
+```bash
+cd my-plugin
+DOKRYPT_REGISTRY_TOKEN=your-token dokrypt plugin publish
+```
+
+## Managing Plugins
+
+```bash
+# List installed plugins
+dokrypt plugin list
+
+# Search registry
+dokrypt plugin search gas
+
+# Update a plugin
+dokrypt plugin update gas-reporter
+
+# Remove a plugin
+dokrypt plugin uninstall gas-reporter
+```
+
+## Hooks Configuration (dokrypt.yaml)
+
+In addition to plugin hooks, you can define shell command hooks directly in `dokrypt.yaml`:
+
+```yaml
+hooks:
+  pre_up: "echo 'Starting environment...'"
+  post_up: "npx hardhat run scripts/deploy.js --network localhost"
+  pre_down: "echo 'Stopping...'"
+  post_down: "echo 'Environment stopped'"
+  post_snapshot: "echo 'Snapshot saved'"
+```
+
+| Hook | When |
+|------|------|
+| `pre_up` | Before starting services |
+| `post_up` | After all services are healthy |
+| `pre_down` | Before stopping services |
+| `post_down` | After all services stopped |
+| `post_snapshot` | After a snapshot is saved |

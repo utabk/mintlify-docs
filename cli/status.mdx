@@ -1,0 +1,58 @@
+---
+title: "dokrypt status"
+description: "Show running service status and health."
+---
+
+## Usage
+
+```bash
+dokrypt status [flags]
+```
+
+## Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `-w, --watch` | `bool` | `false` | Live-updating status (refreshes every 2 seconds) |
+| `--service` | `string` | — | Show status for a specific service only |
+
+## Description
+
+Queries Docker for container status and performs HTTP health checks on all running services. Displays a table with service name, type, status, port, and URL.
+
+### Status Indicators
+
+| Indicator | Meaning |
+|-----------|---------|
+| `● Ready` | Container running and health check passed |
+| `● Running` | Container running, no health check configured |
+| `○ Stopped` | Container is not running |
+
+## Examples
+
+### Show status
+
+```bash
+dokrypt status
+```
+
+```
+Service            Status      Port   URL
+ethereum (anvil)   ● Ready     8545   http://localhost:8545
+ipfs               ● Ready     5001   http://localhost:5001
+blockscout         ● Ready     4000   http://localhost:4000
+```
+
+### Live-updating watch mode
+
+```bash
+dokrypt status --watch
+```
+
+Clears the screen and updates every 2 seconds. Press `Ctrl+C` to exit.
+
+### Single service
+
+```bash
+dokrypt status --service ethereum
+```

@@ -1,0 +1,156 @@
+---
+title: "Cross-Chain Bridge"
+description: "Simulate cross-chain transfers and message relaying between local networks."
+---
+
+## Overview
+
+Dokrypt's bridge simulator lets you test cross-chain workflows locally. It simulates token transfers between local chains by modifying balances directly — no actual cross-chain messaging protocol is involved.
+
+This is useful for:
+- Testing multi-chain dApps
+- Simulating L1↔L2 bridges
+- Testing cross-chain token transfers
+- Developing bridge aggregators
+
+## Setup
+
+To use the bridge, your `dokrypt.yaml` needs multiple chains:
+
+```yaml
+version: "1"
+name: multi-chain-app
+
+chains:
+  ethereum:
+    engine: anvil
+    chain_id: 31337
+    block_time: "2s"
+  polygon:
+    engine: anvil
+    chain_id: 137
+    block_time: "2s"
+
+services:
+  bridge:
+    type: mock-bridge
+    chains: [ethereum, polygon]
+```
+
+Start the environment:
+
+```bash
+dokrypt up
+```
+
+## Sending Transfers
+
+Simulate a cross-chain transfer:
+
+```bash
+# Bridge 100 ETH from ethereum to polygon
+dokrypt bridge send ethereum polygon 100
+```
+
+With options:
+
+```bash
+# Specify sender
+dokrypt bridge send ethereum polygon 50.5 --from 0x1234...abcd
+
+# Bridge tokens
+dokrypt bridge send polygon ethereum 1000 --token USDC
+```
+
+### How It Works
+
+1. Resolves RPC endpoints for both chains
+2. Sends a transaction to the bridge contract (`0x...B12D`) on the source chain
+3. Mines a block on the source chain
+4. Reads the recipient's current balance on the destination chain
+5. Adds the bridged amount to the balance on the destination chain
+
+## Bridge Status
+
+Check the status of bridge queues:
+
+```bash
+dokrypt bridge status
+```
+
+```
+Bridge          Chains              Relay Delay   Confirmations   Queue
+eth-polygon     ethereum → polygon  30s           12              0 pending
+```
+
+## Relay Messages
+
+Force relay pending bridge messages by mining confirmation blocks:
+
+```bash
+dokrypt bridge relay
+dokrypt bridge relay --blocks 5
+```
+
+This mines blocks on each chain and triggers the bridge service relay endpoint.
+
+## Bridge Configuration
+
+View the full bridge configuration:
+
+```bash
+dokrypt bridge config
+```
+
+### Configuration in dokrypt.yaml
+
+```yaml
+services:
+  bridge:
+    type: mock-bridge
+    chains: [ethereum, polygon]
+    confirmation_blocks: 12
+    relay_delay: 30s
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `chains` | `string[]` | required | Connected chains |
+| `confirmation_blocks` | `int` | `12` | Blocks before relay |
+| `relay_delay` | `duration` | `30s` | Delay before relay |
+
+## Multi-Bridge Setup
+
+You can configure multiple bridges for complex multi-chain scenarios:
+
+```yaml
+chains:
+  ethereum:
+    engine: anvil
+    chain_id: 31337
+  polygon:
+    engine: anvil
+    chain_id: 137
+  arbitrum:
+    engine: anvil
+    chain_id: 42161
+
+services:
+  eth-polygon-bridge:
+    type: mock-bridge
+    chains: [ethereum, polygon]
+    confirmation_blocks: 12
+  eth-arbitrum-bridge:
+    type: mock-bridge
+    chains: [ethereum, arbitrum]
+    confirmation_blocks: 6
+```
+
+```bash
+dokrypt bridge send ethereum polygon 100
+dokrypt bridge send ethereum arbitrum 50
+```
+
+<Note>
+  The bridge simulator directly modifies destination chain balances. It does not deploy or interact with actual bridge smart contracts. For testing real bridge protocol implementations, deploy the bridge contracts as part of your project.
+</Note>

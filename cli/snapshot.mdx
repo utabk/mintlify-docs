@@ -1,0 +1,242 @@
+---
+title: "dokrypt snapshot"
+description: "Save, restore, list, diff, export, and import chain state snapshots."
+---
+
+## Usage
+
+```bash
+dokrypt snapshot <subcommand> [flags]
+```
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| [`save`](#save) | Save current chain state |
+| [`restore`](#restore) | Restore to a saved snapshot |
+| [`list`](#list) | List all snapshots |
+| [`delete`](#delete) | Delete a snapshot |
+| [`export`](#export) | Export snapshot to a file |
+| [`import`](#import) | Import snapshot from a file |
+| [`diff`](#diff) | Compare two snapshots |
+
+---
+
+## save
+
+Save the current chain state as a named snapshot.
+
+```bash
+dokrypt snapshot save <name> [flags]
+```
+
+### Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Snapshot name (used for restore/delete) |
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--description` | `string` | — | Human-readable description |
+| `--tags` | `string[]` | — | Tags for categorization (repeatable) |
+
+### How It Works
+
+1. Calls `evm_snapshot` via JSON-RPC on the running chain
+2. Records the current block number and chain ID
+3. Saves metadata to `~/.dokrypt/snapshots/<project>/<name>.json`
+
+### Examples
+
+```bash
+# Simple save
+dokrypt snapshot save initial-state
+
+# With description
+dokrypt snapshot save before-deploy --description "Clean state before contract deployment"
+
+# With tags
+dokrypt snapshot save checkpoint --tags critical --tags v1.0
+```
+
+---
+
+## restore
+
+Restore chain state to a previously saved snapshot.
+
+```bash
+dokrypt snapshot restore <name>
+```
+
+### Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Snapshot name to restore |
+
+### How It Works
+
+1. Loads the snapshot metadata
+2. Calls `evm_revert` with the snapshot ID
+3. Takes a new snapshot at the same point (EVM snapshots are consumed on revert)
+4. Returns the current block number
+
+### Examples
+
+```bash
+dokrypt snapshot restore initial-state
+```
+
+<Info>
+  EVM snapshots are single-use — once reverted, the snapshot ID is consumed. Dokrypt automatically takes a new snapshot after restoring so you can restore again later.
+</Info>
+
+---
+
+## list
+
+List all snapshots for the current project.
+
+```bash
+dokrypt snapshot list
+```
+
+### Output
+
+```
+Name              Block    Created              Description
+initial-state     0        2025-01-15 10:30:00  Fresh state
+before-deploy     42       2025-01-15 10:35:00  Before contract deployment
+after-tests       108      2025-01-15 10:42:00  After running test suite
+```
+
+Snapshots are sorted by creation time (newest first).
+
+---
+
+## delete
+
+Delete a saved snapshot.
+
+```bash
+dokrypt snapshot delete <name>
+```
+
+### Examples
+
+```bash
+dokrypt snapshot delete old-checkpoint
+```
+
+---
+
+## export
+
+Export a snapshot to a JSON file for sharing or backup.
+
+```bash
+dokrypt snapshot export <name> <path>
+```
+
+### Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Snapshot name |
+| `path` | Yes | Output file path |
+
+### How It Works
+
+1. Loads snapshot metadata
+2. Calls `anvil_dumpState` to export the full chain state
+3. Writes a JSON file containing both metadata and state data
+
+### Examples
+
+```bash
+dokrypt snapshot export initial-state ./backups/state.json
+```
+
+The exported file contains:
+
+```json
+{
+  "metadata": {
+    "name": "initial-state",
+    "block_number": 0,
+    "chain_id": 31337,
+    "created_at": "2025-01-15T10:30:00Z"
+  },
+  "state": { ... }
+}
+```
+
+<Note>
+  `anvil_dumpState` is Anvil-specific. Export may not work with Hardhat or Geth chains.
+</Note>
+
+---
+
+## import
+
+Import a snapshot from a JSON file.
+
+```bash
+dokrypt snapshot import <path>
+```
+
+### Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `path` | Yes | Path to the snapshot JSON file |
+
+### How It Works
+
+1. Reads and parses the JSON file
+2. Loads the chain state via `anvil_loadState`
+3. Saves the metadata to the local snapshot registry
+
+### Examples
+
+```bash
+dokrypt snapshot import ./backups/state.json
+```
+
+---
+
+## diff
+
+Show differences between two snapshots.
+
+```bash
+dokrypt snapshot diff <snap1> <snap2>
+```
+
+### Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `snap1` | Yes | First snapshot name |
+| `snap2` | Yes | Second snapshot name |
+
+### Output
+
+Shows the block number delta and time difference between snapshots.
+
+### Examples
+
+```bash
+dokrypt snapshot diff before-deploy after-deploy
+```
+
+```
+Comparing: before-deploy vs after-deploy
+  Block delta: +66 blocks (42 → 108)
+  Time delta:  7m12s
+```

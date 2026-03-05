@@ -1,0 +1,111 @@
+---
+title: "dokrypt init"
+description: "Scaffold a new Dokrypt project from a template."
+---
+
+## Usage
+
+```bash
+dokrypt init <project-name> [flags]
+```
+
+## Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `project-name` | Yes | Name of the new project directory |
+
+## Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `-t, --template` | `string` | `evm-basic` | Template to use |
+| `--chain` | `string` | `ethereum` | Chain type |
+| `--engine` | `string` | `anvil` | Node engine (`anvil`, `hardhat`, `geth`) |
+| `--no-git` | `bool` | `false` | Skip git repository initialization |
+| `--dir` | `string` | `.` | Target parent directory |
+
+## Description
+
+Creates a new project directory with smart contracts, tests, deployment scripts, and a `dokrypt.yaml` configuration file scaffolded from the selected template.
+
+The scaffolding process:
+
+1. Validates the project name and checks that the target directory doesn't already exist
+2. Loads the selected template (built-in or installed from marketplace)
+3. Renders all template files, replacing variables like `{{ .ProjectName }}`, `{{ .ChainName }}`, `{{ .ChainID }}`, and `{{ .Engine }}`
+4. Initializes a git repository (unless `--no-git` is set)
+5. Displays the created files and next steps
+
+## Available Templates
+
+| Template | Difficulty | Description |
+|----------|-----------|-------------|
+| `evm-basic` | Beginner | Counter + ERC-20 starter |
+| `evm-token` | Intermediate | ERC-20, vesting, staking, multisig |
+| `evm-nft` | Intermediate | ERC-721, marketplace, royalties, IPFS |
+| `evm-dao` | Advanced | Governor, timelock, treasury, voting |
+| `evm-defi` | Advanced | AMM, lending, staking, oracle |
+
+## Examples
+
+### Basic project with defaults
+
+```bash
+dokrypt init my-project
+```
+
+Creates `my-project/` with the `evm-basic` template, Anvil engine, and Ethereum chain.
+
+### DeFi project
+
+```bash
+dokrypt init my-defi-app --template evm-defi
+```
+
+Creates a full DeFi stack with AMM (Factory, Pair, Router), lending vault, staking rewards, and oracle contracts. Configures IPFS, Blockscout, and Chainlink mock services.
+
+### NFT project with custom chain
+
+```bash
+dokrypt init my-nft --template evm-nft --chain polygon --engine hardhat
+```
+
+### Skip git initialization
+
+```bash
+dokrypt init my-project --no-git
+```
+
+### Scaffold into a specific directory
+
+```bash
+dokrypt init my-project --dir /home/user/projects
+```
+
+## Output Structure
+
+The created directory structure depends on the template. For `evm-basic`:
+
+```
+my-project/
+├── dokrypt.yaml          # Environment configuration
+├── foundry.toml          # Solidity compiler settings
+├── README.md             # Project documentation
+├── contracts/
+│   ├── Counter.sol       # Counter contract
+│   └── SimpleToken.sol   # ERC-20 token
+├── test/
+│   ├── Counter.t.sol     # Counter tests (Foundry)
+│   └── SimpleToken.t.sol # Token tests (Foundry)
+└── scripts/
+    └── deploy.js         # Deployment script
+```
+
+## Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Directory already exists | Target directory is not empty | Choose a different name or delete the existing directory |
+| Template not found | Template name is invalid | Run `dokrypt template list` to see available templates |
+| Failed to load template | Template filesystem is corrupted | Reinstall Dokrypt or the template |

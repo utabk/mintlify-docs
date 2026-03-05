@@ -1,0 +1,53 @@
+---
+title: "dokrypt doctor"
+description: "Check system requirements and diagnose issues."
+---
+
+## Usage
+
+```bash
+dokrypt doctor
+```
+
+## Description
+
+Runs a series of diagnostic checks to verify your system meets all requirements for running Dokrypt. No flags are needed.
+
+## Checks Performed
+
+| Check | Requirement | Details |
+|-------|-------------|---------|
+| Docker installed | `docker` binary in PATH | Checks that Docker CLI is available |
+| Docker daemon running | Docker socket responsive | Verifies the Docker daemon is started |
+| Docker API version | >= 1.41 | Checks Docker API version compatibility |
+| Disk space | >= 5 GB free | Ensures enough space for images and containers |
+| Port 8545 | Available | Default Ethereum RPC port |
+| Port 5001 | Available | Default IPFS API port |
+| Port 8080 | Available | Default IPFS gateway port |
+| Port 4000 | Available | Default Blockscout port |
+| Port 8000 | Available | Default Subgraph port |
+| Port 6688 | Available | Default Chainlink port |
+| Port 3000 | Available | Default Grafana port |
+
+## Example Output
+
+```
+Dokrypt Doctor
+Platform: linux/amd64
+
+✓ Docker installed
+✓ Docker daemon running
+✓ Docker API version 1.45 (minimum 1.41)
+✓ Disk space: 45 GB free (minimum 5 GB)
+✓ Port 8545 available
+✓ Port 5001 available
+✓ Port 8080 available
+✓ Port 4000 available
+✓ Port 8000 available
+✓ Port 6688 available
+✓ Port 3000 available
+
+All checks passed!
+```
+
+If any check fails, it will be shown with `✗` and a suggestion for how to fix it.

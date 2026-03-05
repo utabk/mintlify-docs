@@ -1,0 +1,213 @@
+---
+title: "evm-dao"
+description: "Complete DAO governance with Governor, Timelock, Treasury, and voting token."
+---
+
+## Overview
+
+A full on-chain governance system. Token holders can create proposals, vote, and execute transactions through a timelock-protected treasury. This follows the OpenZeppelin Governor pattern.
+
+| | |
+|---|---|
+| **Difficulty** | Advanced |
+| **Category** | DAO |
+| **Chains** | Ethereum |
+| **Services** | None |
+| **License** | Apache-2.0 |
+
+## Quick Start
+
+```bash
+dokrypt init my-dao --template evm-dao
+cd my-dao
+dokrypt up
+```
+
+## Generated Files
+
+```
+my-dao/
+├── dokrypt.yaml
+├── foundry.toml
+├── README.md
+├── contracts/
+│   ├── token/VotingToken.sol
+│   └── governance/
+│       ├── Governor.sol
+│       ├── Timelock.sol
+│       └── Treasury.sol
+├── test/
+│   ├── token/VotingToken.t.sol
+│   └── governance/
+│       ├── Governor.t.sol
+│       ├── Timelock.t.sol
+│       └── Treasury.t.sol
+└── scripts/
+    ├── deploy-dao.js
+    └── create-proposal.js
+```
+
+## Governance Lifecycle
+
+```
+┌──────────┐   ┌───────────┐   ┌──────┐   ┌─────────┐   ┌──────────┐   ┌─────────┐
+│ Propose  │──▶│  Voting   │──▶│ Vote │──▶│ Succeed │──▶│  Queue   │──▶│ Execute │
+│          │   │  Delay    │   │      │   │         │   │ Timelock │   │         │
+└──────────┘   └───────────┘   └──────┘   └─────────┘   └──────────┘   └─────────┘
+   1 block        Active       45818 blocks  Quorum met    1 day delay    Ready!
+```
+
+1. **Propose** — A token holder creates a proposal (requires >= 100 tokens)
+2. **Voting Delay** — 1 block before voting opens
+3. **Voting Period** — 45,818 blocks (~1 week at 12s/block) for token holders to vote
+4. **Succeed/Defeat** — Proposal passes if quorum (10,000 tokens) reached and more For than Against votes
+5. **Queue** — Passed proposal is queued in the Timelock
+6. **Timelock** — 1 day (86,400 seconds) mandatory waiting period
+7. **Execute** — After the delay, anyone can execute the proposal
+
+## Contracts
+
+### VotingToken.sol
+
+ERC-20 with vote delegation and checkpoint-based historical voting power tracking.
+
+**Constructor:**
+```solidity
+constructor(string memory name, string memory symbol, uint256 initialSupply)
+```
+
+**Key Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `delegate(delegatee)` | Public | Delegate your voting power |
+| `getVotes(account)` | View | Current voting power |
+| `getPriorVotes(account, blockNumber)` | View | Historical voting power at a specific block |
+| Standard ERC-20 | — | `transfer`, `approve`, `transferFrom`, `balanceOf`, `allowance` |
+
+**Checkpoint System:**
+```solidity
+struct Checkpoint {
+    uint256 fromBlock;  // Block when recorded
+    uint256 votes;      // Voting power
+}
+```
+
+Checkpoints are recorded whenever delegation changes, enabling accurate historical voting power lookups.
+
+<Warning>
+  Token holders must call `delegate()` (even self-delegation) before their tokens count as voting power. Undelegated tokens have zero voting power.
+</Warning>
+
+---
+
+### Governor.sol
+
+The core governance engine that manages proposals and voting.
+
+**Configuration:**
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `votingDelay` | 1 block | Delay before voting starts |
+| `votingPeriod` | 45,818 blocks | ~1 week voting window |
+| `quorum` | 10,000 tokens | Minimum votes for validity |
+| `proposalThreshold` | 100 tokens | Minimum tokens to propose |
+
+**Proposal States:**
+`Pending` → `Active` → `Canceled` / `Defeated` / `Succeeded` → `Queued` → `Executed`
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `propose(targets[], values[], calldatas[], description)` | Token holder | Create a proposal |
+| `castVote(proposalId, support)` | Token holder | Vote: 0=Against, 1=For, 2=Abstain |
+| `castVoteWithReason(proposalId, support, reason)` | Token holder | Vote with explanation |
+| `queueProposal(proposalId)` | Public | Queue a succeeded proposal |
+| `executeProposal(proposalId)` | Public | Execute a queued proposal |
+| `cancel(proposalId)` | Proposer/Admin | Cancel a proposal |
+| `state(proposalId)` | View | Get current proposal state |
+| `getProposalVotes(proposalId)` | View | Get vote counts |
+
+**Events:** `ProposalCreated`, `VoteCast`, `ProposalExecuted`, `ProposalCanceled`, `ProposalQueued`
+
+---
+
+### Timelock.sol
+
+Enforces a mandatory delay before executing governance decisions. This gives token holders time to react to passed proposals.
+
+**Configuration:**
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `minDelay` | 86,400 seconds (1 day) | Minimum execution delay |
+
+**Roles:**
+- **Proposer** — Can schedule operations (Governor contract)
+- **Executor** — Can execute ready operations (Governor contract)
+- **Admin** — Can manage roles and update delay
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `schedule(target, value, data, salt, delay)` | Proposer | Schedule an operation |
+| `execute(target, value, data, salt)` | Executor | Execute a ready operation |
+| `cancel(id)` | Proposer | Cancel a scheduled operation |
+| `isOperationReady(id)` | View | Check if operation can be executed |
+| `addProposer(account)` | Admin | Grant proposer role |
+| `addExecutor(account)` | Admin | Grant executor role |
+| `updateMinDelay(newDelay)` | Admin | Change minimum delay |
+
+**Events:** `CallScheduled`, `CallExecuted`, `Cancelled`, `MinDelayChanged`
+
+---
+
+### Treasury.sol
+
+Holds ETH and ERC-20 tokens for the DAO. Only the Timelock (via Governor proposals) can withdraw funds.
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `deposit(token, amount)` | Public | Deposit ERC-20 tokens |
+| `receive()` / `fallback()` | Public | Accept ETH |
+| `withdraw(token, to, amount)` | Controller (Timelock) | Withdraw ERC-20 |
+| `withdrawETH(to, amount)` | Controller (Timelock) | Withdraw ETH |
+| `getBalance(token)` | View | Check token balance |
+| `updateController(newController)` | Admin | Update controller address |
+
+**Events:** `Deposited`, `ETHDeposited`, `Withdrawn`, `ETHWithdrawn`, `ControllerUpdated`
+
+## Deployment
+
+```bash
+npx hardhat run scripts/deploy-dao.js --network localhost
+```
+
+Deployment order:
+1. **VotingToken** — 1,000,000 initial supply
+2. **Timelock** — 1 day delay
+3. **Governor** — Connected to VotingToken and Timelock
+4. **Treasury** — Controlled by Timelock
+
+The script also sets up roles and self-delegates the deployer's voting power.
+
+## Testing with Time Travel
+
+```bash
+# Create a proposal, then advance past voting delay
+dokrypt chain mine 2
+
+# Cast votes, then advance past voting period
+dokrypt chain mine 45820
+
+# Queue the proposal, then advance past timelock
+dokrypt chain time-travel 1d
+dokrypt chain mine 1
+
+# Execute the proposal
+```

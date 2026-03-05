@@ -1,0 +1,96 @@
+---
+title: "Account Management"
+description: "List, fund, impersonate, and generate test accounts."
+---
+
+## Overview
+
+When Dokrypt starts a local chain, it automatically creates and funds a set of test accounts. You can manage these accounts and create new ones at any time.
+
+## Default Accounts
+
+By default, Dokrypt creates **10 accounts** funded with **10,000 ETH** each. Configure this in `dokrypt.yaml`:
+
+```yaml
+settings:
+  accounts: 10              # Number of accounts
+  account_balance: "10000"  # ETH per account
+```
+
+Or per chain:
+
+```yaml
+chains:
+  ethereum:
+    engine: anvil
+    chain_id: 31337
+    accounts: 20
+    balance: "50000"
+```
+
+## Listing Accounts
+
+```bash
+dokrypt accounts list
+```
+
+```
+#   Address                                    Balance (ETH)
+1   0x70997970C51812dc3A010C7d01b50e0d17dc79C8  10000.00
+2   0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC  10000.00
+3   0x90F79bf6EB2c4f870365E785982E1f101E93b906  10000.00
+4   0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65  10000.00
+5   0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc  10000.00
+...
+```
+
+## Funding Accounts
+
+Set any account's balance:
+
+```bash
+dokrypt accounts fund 0x1234...abcd 1000
+```
+
+The amount is in ETH. This replaces the current balance (it doesn't add to it).
+
+## Impersonating Accounts
+
+Allow transactions from any address without the private key:
+
+```bash
+dokrypt accounts impersonate 0xdead...beef
+```
+
+Useful for:
+- Interacting with contracts as their owner
+- Simulating transactions from whale addresses
+- Testing governance as specific voters
+
+## Generating Accounts
+
+Create additional funded accounts:
+
+```bash
+dokrypt accounts generate 5
+```
+
+Generates 5 deterministic addresses, each funded with 10,000 ETH.
+
+## Multi-Chain
+
+All account commands support `--chain` for multi-chain setups:
+
+```bash
+dokrypt accounts list --chain polygon
+dokrypt accounts fund 0x1234... 500 --chain arbitrum
+dokrypt accounts generate 10 --chain ethereum
+```
+
+## Account Generation
+
+Dokrypt generates accounts deterministically from a seed. This means:
+- The same accounts are generated every time
+- Accounts are reproducible across machines
+- Private keys are derived using ECDSA/secp256k1
+- Addresses use EIP-55 checksumming

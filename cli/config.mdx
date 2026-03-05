@@ -1,0 +1,122 @@
+---
+title: "dokrypt config"
+description: "Validate, display, and initialize configuration."
+---
+
+## Usage
+
+```bash
+dokrypt config <subcommand> [flags]
+```
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| [`validate`](#validate) | Validate dokrypt.yaml |
+| [`show`](#show) | Display resolved configuration |
+| [`init`](#init) | Generate a default dokrypt.yaml |
+
+---
+
+## validate
+
+Validate the `dokrypt.yaml` configuration file.
+
+```bash
+dokrypt config validate
+```
+
+Checks syntax, structure, and values. Reports:
+
+- Project name and version
+- Chains with their engine and chain ID
+- Services with their types and dependencies
+- Any validation errors
+
+### Example Output
+
+```
+Configuration valid!
+
+Project: my-defi-app (v1.0)
+
+Chains:
+  ethereum  engine=anvil  chain_id=31337
+
+Services:
+  ipfs       type=ipfs
+  explorer   type=blockscout  depends_on=[ethereum]
+  oracle     type=chainlink-mock  depends_on=[ethereum]
+```
+
+### Validation Rules
+
+- **Runtime**: Must be `docker` or `podman`
+- **Log level**: Must be `debug`, `info`, `warn`, or `error`
+- **Engine**: Must be `anvil`, `hardhat`, or `geth`
+- **Hardfork**: Must be `london`, `shanghai`, or `cancun`
+- **Mining mode**: Must be `auto`, `interval`, or `manual`
+- **Service type**: Must be a recognized type (see [Services](/configuration/services))
+
+---
+
+## show
+
+Display the fully resolved configuration as YAML.
+
+```bash
+dokrypt config show [flags]
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--raw` | `bool` | `false` | Show raw file content without resolving defaults |
+
+### Examples
+
+```bash
+# Show resolved config (with defaults applied)
+dokrypt config show
+
+# Show raw file as-is
+dokrypt config show --raw
+```
+
+---
+
+## init
+
+Generate a default `dokrypt.yaml` in the current directory.
+
+```bash
+dokrypt config init
+```
+
+Creates:
+
+```yaml
+version: "1"
+name: my-project
+
+settings:
+  runtime: docker
+  log_level: info
+  accounts: 10
+  account_balance: "10000"
+
+chains:
+  ethereum:
+    engine: anvil
+    chain_id: 31337
+
+services: {}
+```
+
+### Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `dokrypt.yaml already exists` | Config file exists | Delete it first or edit manually |

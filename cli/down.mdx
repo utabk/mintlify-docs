@@ -1,0 +1,68 @@
+---
+title: "dokrypt down"
+description: "Stop all running services and clean up containers."
+---
+
+## Usage
+
+```bash
+dokrypt down [flags]
+```
+
+## Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--volumes` | `bool` | `false` | Also remove Docker volumes (persistent data) |
+| `--service` | `string[]` | all | Stop specific service(s) only |
+| `--timeout` | `duration` | `30s` | Maximum time to wait for graceful shutdown |
+
+## Description
+
+Stops and removes all containers, networks, and optionally volumes associated with the current project. Also cleans up the state file at `~/.dokrypt/state/`.
+
+The shutdown process:
+
+1. **Load state** — Reads the project state file to find running containers
+2. **Stop containers** — Sends SIGTERM, waits for graceful shutdown
+3. **Remove containers** — Removes stopped containers
+4. **Remove network** — Removes the project Docker network (only if all services stopped)
+5. **Remove volumes** — If `--volumes` is set, removes persistent data
+6. **Clean state** — Removes the state file
+
+## Examples
+
+### Stop everything
+
+```bash
+dokrypt down
+```
+
+### Stop and remove all data
+
+```bash
+dokrypt down --volumes
+```
+
+<Warning>
+  Using `--volumes` permanently deletes chain state, IPFS data, and all other persistent data. This cannot be undone.
+</Warning>
+
+### Stop a specific service
+
+```bash
+dokrypt down --service ipfs
+```
+
+### Custom shutdown timeout
+
+```bash
+dokrypt down --timeout 60s
+```
+
+## Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `No running stack found` | No state file exists | Services may have already been stopped |
+| `Docker is not running` | Docker daemon is not started | Start Docker to clean up orphaned containers |

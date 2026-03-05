@@ -1,0 +1,267 @@
+---
+title: "Services"
+description: "Configure IPFS, block explorers, indexers, oracles, and custom services."
+---
+
+## Overview
+
+Services are additional infrastructure that runs alongside your blockchain nodes. They're defined under `services:` in `dokrypt.yaml` and started automatically with `dokrypt up`.
+
+## Supported Service Types
+
+| Type | Description | Default Port |
+|------|-------------|-------------|
+| `ipfs` | IPFS decentralized storage | 5001 (API), 8080 (gateway) |
+| `blockscout` | Full-featured block explorer | 4000 |
+| `otterscan` | Lightweight block explorer | 5100 |
+| `subgraph` | The Graph indexing protocol | 8000 |
+| `ponder` | Ponder indexing framework | 42069 |
+| `chainlink-mock` | Mock Chainlink oracle | — |
+| `pyth-mock` | Mock Pyth oracle | — |
+| `grafana` | Monitoring dashboards | 3000 |
+| `prometheus` | Metrics collection | 9090 |
+| `faucet` | Test token faucet | 8082 |
+| `mock-bridge` | Cross-chain bridge simulator | — |
+| `custom` | Any Docker image | — |
+
+## IPFS
+
+```yaml
+services:
+  ipfs:
+    type: ipfs
+    port: 5001          # API port
+    gateway_port: 8080  # Gateway port
+```
+
+Access the IPFS API at `http://localhost:5001` and the gateway at `http://localhost:8080`.
+
+Upload files via the API:
+```bash
+curl -X POST -F file=@myfile.json http://localhost:5001/api/v0/add
+```
+
+## Block Explorers
+
+### Blockscout
+
+Full-featured block explorer with transaction tracing, token tracking, and API.
+
+```yaml
+services:
+  explorer:
+    type: blockscout
+    chain: ethereum       # Which chain to index
+    port: 4000
+    depends_on: [ethereum]
+```
+
+Browse at `http://localhost:4000`.
+
+### Otterscan
+
+Lightweight, fast block explorer.
+
+```yaml
+services:
+  explorer:
+    type: otterscan
+    chain: ethereum
+    port: 5100
+```
+
+## Indexers
+
+### The Graph (Subgraph)
+
+Run a local Graph Node for indexing blockchain data with subgraphs.
+
+```yaml
+services:
+  indexer:
+    type: subgraph
+    chain: ethereum
+```
+
+### Ponder
+
+Modern indexing framework.
+
+```yaml
+services:
+  indexer:
+    type: ponder
+    chain: ethereum
+```
+
+## Oracles
+
+### Chainlink Mock
+
+Simulated Chainlink price feeds with configurable prices and volatility.
+
+```yaml
+services:
+  oracle:
+    type: chainlink-mock
+    chain: ethereum
+    depends_on: [ethereum]
+    features:
+      feeds:
+        - pair: ETH/USD
+          price: 2000.00
+          decimals: 8
+          update_interval: 60s
+          volatility:
+            enabled: true
+            max_deviation_pct: 2.0
+        - pair: BTC/USD
+          price: 45000.00
+          decimals: 8
+```
+
+| Feed Config | Type | Description |
+|-------------|------|-------------|
+| `pair` | `string` | Price pair (e.g., `ETH/USD`) |
+| `price` | `float` | Initial price |
+| `decimals` | `int` | Price decimals (usually 8 for Chainlink) |
+| `update_interval` | `duration` | How often price updates |
+| `volatility.enabled` | `bool` | Enable random price movements |
+| `volatility.max_deviation_pct` | `float` | Max % change per update |
+
+### Pyth Mock
+
+Simulated Pyth oracle feeds.
+
+```yaml
+services:
+  oracle:
+    type: pyth-mock
+    chain: ethereum
+```
+
+## Monitoring
+
+### Grafana
+
+Pre-configured dashboards for chain metrics.
+
+```yaml
+services:
+  grafana:
+    type: grafana
+    port: 3000
+```
+
+Access at `http://localhost:3000` (default credentials: admin/admin).
+
+### Prometheus
+
+Metrics collection for chain and service monitoring.
+
+```yaml
+services:
+  prometheus:
+    type: prometheus
+    port: 9090
+```
+
+## Faucet
+
+Web-based test token faucet.
+
+```yaml
+services:
+  faucet:
+    type: faucet
+    chain: ethereum
+    port: 8082
+```
+
+## Mock Bridge
+
+Cross-chain bridge simulator for multi-chain setups.
+
+```yaml
+services:
+  bridge:
+    type: mock-bridge
+    chains: [ethereum, polygon]
+    confirmation_blocks: 12
+    relay_delay: 30s
+```
+
+See [Bridge](/features/bridge) for usage details.
+
+## Custom Services
+
+Run any Docker image as a service:
+
+```yaml
+services:
+  my-api:
+    type: custom
+    image: my-api:latest
+    command: ["--port", "3000"]
+    ports:
+      http: 3000
+      ws: 3001
+    volumes:
+      - "./data:/app/data"
+    environment:
+      DATABASE_URL: "postgres://localhost/mydb"
+      NODE_ENV: "development"
+    depends_on: [ethereum]
+    healthcheck:
+      http: "http://localhost:3000/health"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+```
+
+### Custom Build
+
+Build from a local Dockerfile:
+
+```yaml
+services:
+  my-service:
+    type: custom
+    build:
+      context: ./my-service
+      dockerfile: Dockerfile
+    ports:
+      http: 8080
+```
+
+## Dependencies
+
+Use `depends_on` to control startup order:
+
+```yaml
+services:
+  explorer:
+    type: blockscout
+    depends_on: [ethereum]      # Waits for ethereum chain
+  indexer:
+    type: subgraph
+    depends_on: [ethereum, ipfs] # Waits for both
+```
+
+Dokrypt resolves dependencies using topological sort (Kahn's algorithm) and starts independent services in parallel.
+
+## Health Checks
+
+Services support health checks to verify they're ready:
+
+```yaml
+services:
+  my-service:
+    healthcheck:
+      http: "http://localhost:3000/health"  # HTTP endpoint
+      # OR
+      tcp: "localhost:3000"                  # TCP port check
+      interval: 10s                          # Check interval
+      timeout: 5s                            # Timeout per check
+      retries: 3                             # Retries before unhealthy
+```

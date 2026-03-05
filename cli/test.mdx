@@ -1,0 +1,179 @@
+---
+title: "dokrypt test"
+description: "Run tests, list suites, and view test reports."
+---
+
+## Usage
+
+```bash
+dokrypt test <subcommand> [flags]
+```
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| [`run`](#run) | Run tests |
+| [`list`](#list) | List discovered test suites |
+| [`report`](#report) | Show the last test report |
+
+---
+
+## run
+
+Discover and run tests with optional filtering, gas reporting, and coverage.
+
+```bash
+dokrypt test run [flags]
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--suite` | `string` | — | Run a specific suite by name |
+| `--filter` | `string` | — | Filter tests by name substring |
+| `--parallel` | `int` | `4` | Maximum parallel test count |
+| `--gas-report` | `bool` | `false` | Generate gas usage report |
+| `--coverage` | `bool` | `false` | Generate coverage report |
+| `--snapshot` | `bool` | `false` | Enable snapshot isolation per test |
+| `--timeout` | `duration` | — | Per-test timeout (e.g., `30s`, `2m`) |
+| `--json` | `bool` | `false` | Output results as JSON |
+
+### Test File Discovery
+
+Dokrypt automatically discovers tests based on file patterns:
+
+| Language | Patterns | Runner |
+|----------|----------|--------|
+| Solidity | `*.t.sol`, `*.test.sol`, `*_test.sol` | `forge test` |
+| JavaScript | `*.test.js`, `*.js` | `node` or `npx hardhat test` |
+| TypeScript | `*.test.ts`, `*.ts` | `npx hardhat test` |
+
+Search directories (in order): `test/`, `tests/`, `contracts/test/`, or as configured in `dokrypt.yaml`.
+
+### Configuration via dokrypt.yaml
+
+Test settings can also be configured in `dokrypt.yaml`:
+
+```yaml
+tests:
+  dir: test/
+  timeout: 120s
+  parallel: 8
+  snapshot_isolation: true
+  gas_report: true
+  coverage: false
+  suites:
+    unit:
+      pattern: "test/unit/**/*.t.sol"
+      timeout: 30s
+    integration:
+      pattern: "test/integration/**/*.t.sol"
+      timeout: 120s
+      services: [ethereum, ipfs]
+```
+
+CLI flags take precedence over config values.
+
+### Built-in Validation Suite
+
+If no test files are found, Dokrypt runs a built-in validation suite:
+
+| Test | Description |
+|------|-------------|
+| `chain_is_running` | Basic connectivity check |
+| `accounts_available` | At least one account exists |
+| `chain_id_valid` | Chain ID is non-zero |
+| `mining_works` | Can mine blocks successfully |
+| `snapshot_restore` | Snapshot and revert work correctly |
+
+### Examples
+
+```bash
+# Run all tests
+dokrypt test run
+
+# Run with gas reporting
+dokrypt test run --gas-report
+
+# Filter by test name
+dokrypt test run --filter "test_transfer"
+
+# Run a specific suite
+dokrypt test run --suite unit
+
+# Run with snapshot isolation (each test gets a clean state)
+dokrypt test run --snapshot
+
+# Increase parallelism
+dokrypt test run --parallel 8
+
+# Set per-test timeout
+dokrypt test run --timeout 1m
+
+# Output JSON for CI pipelines
+dokrypt test run --json > results.json
+```
+
+### Example Output
+
+```
+Running test suite: contracts
+  ✓ test_increment           12ms    gas: 26,342
+  ✓ test_set_number           8ms    gas: 43,521
+  ✓ test_decrement            9ms    gas: 26,342
+  ✓ test_token_transfer      15ms    gas: 51,204
+
+4 passed, 0 failed (44ms)
+
+Gas Report:
+  Counter.increment()     26,342 avg
+  Counter.setNumber()     43,521 avg
+  SimpleToken.transfer()  51,204 avg
+```
+
+Results are persisted to `~/.dokrypt/reports/<project>/latest.json`.
+
+---
+
+## list
+
+List all discovered test suites.
+
+```bash
+dokrypt test list
+```
+
+### Example Output
+
+```
+Suite          Tests   Description
+contracts      4       Solidity contract tests
+validation     5       Built-in chain validation
+```
+
+---
+
+## report
+
+Show the results from the last test run.
+
+```bash
+dokrypt test report
+```
+
+Loads `~/.dokrypt/reports/<project>/latest.json` and displays the results, including gas report if available.
+
+### Example Output
+
+```
+Last run: 2025-01-15 10:42:00 (44ms)
+
+  ✓ test_increment           12ms
+  ✓ test_set_number           8ms
+  ✓ test_decrement            9ms
+  ✓ test_token_transfer      15ms
+
+4 passed, 0 failed
+```

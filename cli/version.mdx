@@ -1,0 +1,34 @@
+---
+title: "dokrypt version"
+description: "Show Dokrypt version information."
+---
+
+## Usage
+
+```bash
+dokrypt version
+```
+
+## Description
+
+Displays the Dokrypt version, build commit hash, build date, Go runtime version, and OS/architecture.
+
+## Example Output
+
+```
+dokrypt version 1.0.0
+  commit:  abc1234
+  built:   2025-01-15T10:30:00Z
+  go:      go1.24.0
+  os/arch: linux/amd64
+```
+
+## Version Variables
+
+The version information is embedded at build time via Go linker flags:
+
+| Variable | Description |
+|----------|-------------|
+| Version | Git tag or "dev" |
+| Commit | Short commit hash |
+| Date | Build timestamp (UTC) |

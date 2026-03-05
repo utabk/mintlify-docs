@@ -1,0 +1,200 @@
+---
+title: "evm-nft"
+description: "NFT collection with marketplace, EIP-2981 royalties, and IPFS metadata."
+---
+
+## Overview
+
+A complete NFT project with an ERC-721 collection, decentralized marketplace, and EIP-2981 royalty standard. Includes IPFS for metadata storage and Blockscout for browsing.
+
+| | |
+|---|---|
+| **Difficulty** | Intermediate |
+| **Category** | NFT |
+| **Chains** | Ethereum |
+| **Services** | IPFS (port 5001), Blockscout (port 4000) |
+| **License** | Apache-2.0 |
+
+## Quick Start
+
+```bash
+dokrypt init my-nft --template evm-nft
+cd my-nft
+dokrypt up
+# ✓ ethereum    http://localhost:8545
+# ✓ ipfs        http://localhost:5001
+# ✓ blockscout  http://localhost:4000
+```
+
+## Generated Files
+
+```
+my-nft/
+├── dokrypt.yaml
+├── foundry.toml
+├── README.md
+├── contracts/
+│   ├── NFTCollection.sol
+│   ├── Marketplace.sol
+│   └── Royalty.sol
+├── test/
+│   ├── NFTCollection.t.sol
+│   ├── Marketplace.t.sol
+│   └── Royalty.t.sol
+└── scripts/
+    ├── deploy-nft.js
+    └── upload-metadata.js
+```
+
+## Configuration
+
+```yaml
+version: "1"
+name: my-nft
+
+chains:
+  ethereum:
+    engine: anvil
+    chain_id: 31337
+    block_time: "2s"
+
+services:
+  ipfs:
+    type: ipfs
+    port: 5001
+    gateway_port: 8080
+  explorer:
+    type: blockscout
+    chain: ethereum
+    port: 4000
+```
+
+## Contracts
+
+### NFTCollection.sol (ERC-721)
+
+Full standalone ERC-721 implementation with minting and metadata.
+
+**Constructor:**
+```solidity
+constructor(
+    string memory name,
+    string memory symbol,
+    string memory baseURI,
+    uint256 maxSupply,
+    uint256 mintPrice
+)
+```
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `mint()` | Public (payable) | Mint an NFT at the configured price |
+| `safeTransferFrom(from, to, tokenId)` | Public | Transfer with receiver check |
+| `transferFrom(from, to, tokenId)` | Public | Transfer without receiver check |
+| `approve(to, tokenId)` | Public | Approve transfer |
+| `setApprovalForAll(operator, approved)` | Public | Approve operator for all tokens |
+| `setBaseURI(newBaseURI)` | Owner | Update metadata base URI |
+| `tokenURI(tokenId)` | View | Returns `{baseURI}{tokenId}` |
+| `balanceOf(owner)` | View | Token count for address |
+| `ownerOf(tokenId)` | View | Owner of specific token |
+
+**Minting Logic:**
+- Payment must equal `mintPrice`
+- Cannot exceed `maxSupply`
+- Token IDs are sequential starting from 1
+
+**Interfaces implemented:** `IERC721`, `IERC721Metadata`, `IERC721Receiver`
+
+---
+
+### Marketplace.sol
+
+Decentralized NFT marketplace with listings, offers, and platform fees.
+
+**Fee:** 2.5% platform fee (250 basis points) on all sales.
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `listItem(nft, tokenId, price)` | Public | List an NFT for sale |
+| `buyItem(nft, tokenId)` | Public (payable) | Buy a listed NFT |
+| `cancelListing(nft, tokenId)` | Seller | Cancel a listing |
+| `makeOffer(nft, tokenId)` | Public (payable) | Make an offer (ETH attached) |
+| `acceptOffer(nft, tokenId, offerer)` | Seller | Accept a specific offer |
+| `withdrawOffer(nft, tokenId)` | Offerer | Withdraw your offer |
+| `withdrawPlatformFees()` | Owner | Withdraw collected fees |
+
+**Events:** `ItemListed`, `ItemSold`, `ItemCanceled`, `OfferMade`, `OfferAccepted`
+
+**Listing struct:**
+```solidity
+struct Listing {
+    address seller;
+    uint256 price;
+    bool active;
+}
+```
+
+---
+
+### Royalty.sol (EIP-2981)
+
+EIP-2981 royalty standard implementation for NFT secondary sales.
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `setDefaultRoyalty(receiver, basisPoints)` | Owner | Set default royalty for all tokens |
+| `setTokenRoyalty(tokenId, receiver, basisPoints)` | Owner | Override royalty for specific token |
+| `royaltyInfo(tokenId, salePrice)` | View | Returns (receiver, royaltyAmount) |
+| `supportsInterface(interfaceId)` | View | ERC-165 interface detection |
+
+**Constraints:**
+- Maximum royalty: 10% (1000 basis points)
+- Per-token royalties override the default
+- Calculation: `royaltyAmount = salePrice * basisPoints / 10000`
+
+## IPFS Metadata
+
+### Upload Metadata
+
+```bash
+npx hardhat run scripts/upload-metadata.js --network localhost
+```
+
+### Metadata Format
+
+```json
+{
+  "name": "My NFT #1",
+  "description": "A unique digital collectible",
+  "image": "ipfs://IMAGE_CID",
+  "attributes": [
+    { "trait_type": "Background", "value": "Blue" },
+    { "trait_type": "Rarity", "value": "Rare" }
+  ]
+}
+```
+
+Upload images and metadata JSON to IPFS, then set the base URI:
+
+```solidity
+nft.setBaseURI("ipfs://YOUR_METADATA_CID/");
+// tokenURI(1) → "ipfs://YOUR_METADATA_CID/1"
+```
+
+## Deployment
+
+```bash
+npx hardhat run scripts/deploy-nft.js --network localhost
+```
+
+Deploys NFTCollection and Marketplace. Parameters:
+- Collection name, symbol
+- Base URI (IPFS CID)
+- Max supply
+- Mint price (in wei)

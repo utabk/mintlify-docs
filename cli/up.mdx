@@ -1,0 +1,124 @@
+---
+title: "dokrypt up"
+description: "Start all services defined in dokrypt.yaml."
+---
+
+## Usage
+
+```bash
+dokrypt up [flags]
+```
+
+## Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `-d, --detach` | `bool` | `false` | Run in background (detached mode) |
+| `--build` | `bool` | `false` | Rebuild images before starting |
+| `--service` | `string[]` | all | Start specific service(s) only |
+| `--fresh` | `bool` | `false` | Destroy existing state, start clean |
+| `--fork` | `string` | — | Fork a live network (e.g., `mainnet`, `polygon`) |
+| `--fork-block` | `uint64` | `0` | Fork at a specific block number |
+| `--snapshot` | `string` | — | Start from a saved snapshot |
+| `--profile` | `string` | — | Use a config profile (`dev`, `test`, `staging`) |
+| `--timeout` | `duration` | `5m` | Maximum time to wait for services to start |
+
+## Description
+
+Reads `dokrypt.yaml`, resolves dependencies, pulls required Docker images, creates networks, and starts all chains and services in the correct order.
+
+The startup process:
+
+1. **Parse configuration** — Reads `dokrypt.yaml` (with optional profile override)
+2. **Initialize engine** — Creates the container runtime and engine
+3. **Create networks** — Sets up Docker networks for service communication
+4. **Start chains** — Launches blockchain nodes (Anvil, Hardhat, or Geth)
+5. **Fund accounts** — Creates and funds test accounts with the configured balance
+6. **Start services** — Launches services in dependency order (parallel where possible)
+7. **Health checks** — Waits for all services to report healthy
+8. **Save state** — Persists container IDs and ports to `~/.dokrypt/state/`
+9. **Display status** — Shows running services, URLs, and funded accounts
+
+## Examples
+
+### Start everything
+
+```bash
+dokrypt up
+```
+
+### Start in background
+
+```bash
+dokrypt up --detach
+```
+
+### Start only the blockchain
+
+```bash
+dokrypt up --service ethereum
+```
+
+### Start with a fresh state
+
+```bash
+dokrypt up --fresh
+```
+
+Destroys any existing containers and volumes before starting.
+
+### Fork mainnet on startup
+
+```bash
+dokrypt up --fork mainnet
+```
+
+```bash
+dokrypt up --fork polygon --fork-block 50000000
+```
+
+### Restore from snapshot on startup
+
+```bash
+dokrypt up --snapshot clean-state
+```
+
+### Use a configuration profile
+
+```bash
+dokrypt up --profile staging
+```
+
+Profile overrides are defined in `dokrypt.yaml` under `profiles:`.
+
+### Custom timeout
+
+```bash
+dokrypt up --timeout 10m
+```
+
+## Output
+
+```
+Starting services...
+✓ ethereum    Ready  ▸ http://localhost:8545
+✓ ipfs        Ready  ▸ http://localhost:5001
+✓ blockscout  Ready  ▸ http://localhost:4000
+
+Accounts (10000 ETH each):
+  0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+  0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
+  0x90F79bf6EB2c4f870365E785982E1f101E93b906
+  ...
+
+Started 3 services in 4.8s
+```
+
+## Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `dokrypt.yaml not found` | No config file in current directory | Run `dokrypt init` or `dokrypt config init` |
+| `Docker is not running` | Docker daemon is not started | Start Docker Desktop or the Docker service |
+| `Startup timeout exceeded` | Services didn't become healthy in time | Increase `--timeout` or check `dokrypt logs` |
+| `Port already in use` | Another process is using a required port | Stop the conflicting process or change ports in config |

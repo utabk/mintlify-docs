@@ -1,0 +1,156 @@
+---
+title: "dokrypt template"
+description: "Manage local templates — list, inspect, pull, push, and create."
+---
+
+## Usage
+
+```bash
+dokrypt template <subcommand> [flags]
+```
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| [`list`](#list) | List available templates |
+| [`info`](#info) | Show template details |
+| [`pull`](#pull) | Download a template from marketplace |
+| [`push`](#push) | Publish a template to marketplace |
+| [`create`](#create) | Scaffold a new template |
+
+---
+
+## list
+
+List all available templates (built-in and installed).
+
+```bash
+dokrypt template list
+```
+
+### Example Output
+
+```
+Name         Version   Category   Price   Description
+evm-basic    2.0.0     basic      free    Starter EVM environment with Counter and ERC-20
+evm-token    2.0.0     token      free    Token toolkit: ERC-20, vesting, staking, multisig
+evm-nft      2.0.0     nft        free    NFT collection with marketplace, royalties, and IPFS
+evm-dao      2.0.0     dao        free    DAO governance: governor, timelock, treasury, voting
+evm-defi     2.0.0     defi       free    Full DeFi stack: AMM, lending vault, staking, oracle
+```
+
+---
+
+## info
+
+Show detailed information about a template.
+
+```bash
+dokrypt template info <name>
+```
+
+Displays: name, version, description, author, category, difficulty, tags, chains, services, and license.
+
+### Examples
+
+```bash
+dokrypt template info evm-defi
+```
+
+---
+
+## pull
+
+Download a template from the marketplace.
+
+```bash
+dokrypt template pull <name>
+```
+
+If the template is built-in, the download is skipped. Otherwise, downloads from the marketplace registry and installs to `~/.dokrypt/templates/`.
+
+### Examples
+
+```bash
+dokrypt template pull uniswap-v3
+```
+
+---
+
+## push
+
+Publish the current directory as a template to the marketplace.
+
+```bash
+dokrypt template push
+```
+
+Requires a `template.yaml` in the current directory and the `DOKRYPT_REGISTRY_TOKEN` environment variable.
+
+### Examples
+
+```bash
+cd my-template
+DOKRYPT_REGISTRY_TOKEN=xxx dokrypt template push
+```
+
+---
+
+## create
+
+Scaffold a new template directory with boilerplate files.
+
+```bash
+dokrypt template create <name>
+```
+
+### Created Files
+
+| File | Description |
+|------|-------------|
+| `template.yaml` | Template metadata (name, version, description, author, tags, chains, services, license) |
+| `dokrypt.yaml.tmpl` | Configuration template with `{{ .ProjectName }}` placeholder |
+
+### Example
+
+```bash
+dokrypt template create my-defi-template
+```
+
+Creates:
+
+```
+my-defi-template/
+├── template.yaml
+└── dokrypt.yaml.tmpl
+```
+
+### template.yaml format
+
+```yaml
+name: my-defi-template
+version: "0.1.0"
+description: "Your template description"
+author: your-name
+category: defi
+difficulty: intermediate
+tags: [defi, ethereum]
+chains: [ethereum]
+services: []
+license: MIT
+```
+
+### Template Variables
+
+Templates use Go's `text/template` syntax. Available variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `{{ .ProjectName }}` | User's project name | `my-dapp` |
+| `{{ .ChainName }}` | Blockchain name | `ethereum` |
+| `{{ .ChainID }}` | Chain ID | `31337` |
+| `{{ .Engine }}` | Node engine | `anvil` |
+| `{{ .Author }}` | Project author | `dev` |
+
+Files ending in `.tmpl` are rendered through the template engine and the `.tmpl` extension is removed. All other files are copied as-is.

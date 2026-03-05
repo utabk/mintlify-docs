@@ -1,0 +1,90 @@
+---
+title: "Templates Overview"
+description: "Five built-in project templates for DeFi, NFT, DAO, Token, and basic Web3 development."
+---
+
+## Available Templates
+
+Dokrypt ships with 5 built-in templates covering the most common Web3 project types. All templates are **free** and licensed under **Apache-2.0**.
+
+| Template | Difficulty | Contracts | Services | Description |
+|----------|-----------|-----------|----------|-------------|
+| [`evm-basic`](/templates/evm-basic) | Beginner | 2 | None | Counter + ERC-20 starter |
+| [`evm-token`](/templates/evm-token) | Intermediate | 4 | None | ERC-20, vesting, staking, multisig |
+| [`evm-nft`](/templates/evm-nft) | Intermediate | 3 | IPFS, Blockscout | ERC-721, marketplace, royalties |
+| [`evm-dao`](/templates/evm-dao) | Advanced | 4 | None | Governor, timelock, treasury, voting |
+| [`evm-defi`](/templates/evm-defi) | Advanced | 8 | IPFS, Subgraph, Blockscout, Oracle | AMM, lending, staking, oracle |
+
+## Usage
+
+```bash
+# List all templates
+dokrypt template list
+
+# Create a project from a template
+dokrypt init my-project --template evm-defi
+
+# Get info about a template
+dokrypt template info evm-nft
+```
+
+## What Each Template Includes
+
+Every template generates:
+
+| File | Description |
+|------|-------------|
+| `dokrypt.yaml` | Environment configuration (chains, services) |
+| `foundry.toml` | Solidity compiler settings (0.8.20, optimizer enabled) |
+| `README.md` | Project documentation with setup instructions |
+| `contracts/` | Solidity smart contracts |
+| `test/` | Foundry test files (`.t.sol`) |
+| `scripts/` | JavaScript deployment scripts |
+
+## Common Settings
+
+All templates use:
+
+- **Solidity**: 0.8.20
+- **Optimizer**: Enabled, 200 runs
+- **Test framework**: Foundry (forge)
+- **Chain engine**: Anvil (default)
+- **Chain ID**: 31337 (local)
+- **Accounts**: 10, funded with 10,000 ETH each
+
+## Choosing a Template
+
+<CardGroup cols={2}>
+  <Card title="Just getting started?" icon="seedling" href="/templates/evm-basic">
+    Use **evm-basic**. A Counter and ERC-20 token with tests. Perfect for learning.
+  </Card>
+  <Card title="Building a token project?" icon="coins" href="/templates/evm-token">
+    Use **evm-token**. Complete ERC-20 with vesting schedules, staking pools, and a multisig wallet.
+  </Card>
+  <Card title="Building an NFT project?" icon="image" href="/templates/evm-nft">
+    Use **evm-nft**. ERC-721 collection with marketplace, royalties (EIP-2981), and IPFS metadata.
+  </Card>
+  <Card title="Building a DAO?" icon="landmark" href="/templates/evm-dao">
+    Use **evm-dao**. Full governance stack with Governor, Timelock, Treasury, and voting token.
+  </Card>
+  <Card title="Building DeFi?" icon="chart-line" href="/templates/evm-defi">
+    Use **evm-defi**. Complete DeFi stack: AMM with Factory/Pair/Router, lending vault, staking, and price oracle.
+  </Card>
+</CardGroup>
+
+## Custom Templates
+
+You can create and share your own templates:
+
+```bash
+# Create a new template scaffold
+dokrypt template create my-custom-template
+
+# Install from a local directory
+dokrypt marketplace install my-template --from ./my-template-dir
+
+# Publish to the marketplace
+dokrypt marketplace publish
+```
+
+See [Template Management](/cli/template) for details.

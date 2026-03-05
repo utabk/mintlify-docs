@@ -1,0 +1,211 @@
+---
+title: "evm-token"
+description: "Complete token toolkit with ERC-20, vesting, staking, and multisig."
+---
+
+## Overview
+
+A comprehensive token project template with four production-grade contracts covering the full token lifecycle: creation, distribution via vesting, yield via staking, and secure management via multisig.
+
+| | |
+|---|---|
+| **Difficulty** | Intermediate |
+| **Category** | Token |
+| **Chains** | Ethereum |
+| **Services** | None |
+| **License** | Apache-2.0 |
+
+## Quick Start
+
+```bash
+dokrypt init my-token --template evm-token
+cd my-token
+dokrypt up
+```
+
+## Generated Files
+
+```
+my-token/
+├── dokrypt.yaml
+├── foundry.toml
+├── README.md
+├── contracts/
+│   ├── token/ManagedToken.sol
+│   ├── vesting/VestingSchedule.sol
+│   ├── staking/StakeRewards.sol
+│   └── multisig/MultiSig.sol
+├── test/
+│   ├── token/ManagedToken.t.sol
+│   ├── vesting/VestingSchedule.t.sol
+│   ├── staking/StakeRewards.t.sol
+│   └── multisig/MultiSig.t.sol
+└── scripts/
+    ├── deploy-token.js
+    └── setup-vesting.js
+```
+
+## Contracts
+
+### ManagedToken.sol
+
+Full-featured ERC-20 with owner-controlled minting, burning, and emergency pause.
+
+**Constructor:**
+```solidity
+constructor(string memory name, string memory symbol, uint256 initialSupply)
+```
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `transfer(to, amount)` | Public | Transfer tokens (reverts when paused) |
+| `approve(spender, amount)` | Public | Approve spending |
+| `transferFrom(from, to, amount)` | Public | Transfer on behalf |
+| `mint(to, amount)` | Owner | Mint new tokens |
+| `burn(amount)` | Public | Burn your own tokens |
+| `pause()` | Owner | Pause all transfers |
+| `unpause()` | Owner | Resume transfers |
+| `transferOwnership(newOwner)` | Owner | Transfer ownership |
+
+**Events:** `Transfer`, `Approval`, `Paused`, `Unpaused`, `OwnershipTransferred`
+
+---
+
+### VestingSchedule.sol
+
+Linear token vesting with configurable cliff and duration.
+
+**Constructor:**
+```solidity
+constructor(address _token)
+```
+
+**Schedule struct:**
+```solidity
+struct Schedule {
+    address beneficiary;   // Recipient
+    uint256 totalAmount;   // Total tokens to vest
+    uint256 released;      // Tokens already released
+    uint256 start;         // Vesting start timestamp
+    uint256 cliff;         // Cliff end timestamp
+    uint256 duration;      // Total duration (seconds)
+    bool revoked;          // Cancellation status
+}
+```
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `createSchedule(beneficiary, amount, start, cliffDuration, duration)` | Owner | Create vesting schedule |
+| `release(scheduleId)` | Public | Release vested tokens to beneficiary |
+| `revoke(scheduleId)` | Owner | Cancel schedule, return unvested tokens |
+| `releasableAmount(scheduleId)` | View | Calculate currently vested amount |
+
+**Vesting Logic:**
+- Before cliff: 0 tokens are vested
+- After cliff: tokens vest linearly over the remaining duration
+- Formula: `vestedAmount = totalAmount * (currentTime - start) / duration`
+
+**Events:** `ScheduleCreated`, `TokensReleased`, `ScheduleRevoked`
+
+<Tip>
+  Use `dokrypt chain time-travel` to test vesting schedules without waiting. For example, `dokrypt chain time-travel 180d` jumps past a 6-month cliff.
+</Tip>
+
+---
+
+### StakeRewards.sol
+
+Synthetix-style proportional staking rewards. Users stake tokens and earn rewards proportional to their share of the total stake.
+
+**Constructor:**
+```solidity
+constructor(address _stakingToken, address _rewardsToken)
+```
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `stake(amount)` | Public | Stake tokens |
+| `withdraw(amount)` | Public | Unstake tokens |
+| `getReward()` / `claimReward()` | Public | Claim accumulated rewards |
+| `exit()` | Public | Withdraw all + claim rewards |
+| `setRewardsDuration(duration)` | Owner | Set reward period length |
+| `notifyRewardAmount(amount)` | Owner | Start/refill reward distribution |
+| `earned(account)` | View | Check pending rewards |
+| `rewardPerToken()` | View | Current reward per staked token |
+
+**Reward Calculation:**
+- `rewardRate = rewardAmount / duration`
+- `rewardPerToken += rewardRate * timeDelta / totalStaked`
+- `earned = stakedBalance * (rewardPerToken - userPaidPerToken) + storedRewards`
+
+**Events:** `Staked`, `Withdrawn`, `RewardPaid`, `RewardsDurationUpdated`
+
+---
+
+### MultiSig.sol
+
+M-of-N multisignature wallet for secure fund management.
+
+**Constructor:**
+```solidity
+constructor(address[] memory _owners, uint256 _required)
+```
+
+- `_owners`: Array of owner addresses
+- `_required`: Minimum confirmations needed to execute
+
+**Transaction struct:**
+```solidity
+struct Transaction {
+    address to;           // Target address
+    uint256 value;        // ETH value
+    bytes data;           // Calldata
+    bool executed;        // Execution status
+    uint256 confirmations;// Confirmation count
+}
+```
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `submitTransaction(to, value, data)` | Owner | Submit a new transaction |
+| `confirmTransaction(txId)` | Owner | Confirm a pending transaction |
+| `revokeConfirmation(txId)` | Owner | Revoke your confirmation |
+| `executeTransaction(txId)` | Owner | Execute if enough confirmations |
+| `getTransactionCount()` | View | Total transaction count |
+| `getTransaction(txId)` | View | Get transaction details |
+
+**Events:** `Deposit`, `Submission`, `Confirmation`, `Revocation`, `Execution`, `ExecutionFailure`
+
+The wallet accepts ETH via the `receive()` function, emitting a `Deposit` event.
+
+## Deployment
+
+### Deploy Token
+
+```bash
+TOKEN_NAME="MyToken" TOKEN_SYMBOL="MTK" INITIAL_SUPPLY="1000000" \
+  npx hardhat run scripts/deploy-token.js --network localhost
+```
+
+Environment variables:
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `TOKEN_NAME` | — | Token name |
+| `TOKEN_SYMBOL` | — | Token symbol |
+| `INITIAL_SUPPLY` | — | Initial supply (whole tokens) |
+| `RPC_URL` | `http://localhost:8545` | Chain RPC |
+| `PRIVATE_KEY` | — | Deployer private key |
+
+### Setup Vesting
+
+```bash
+npx hardhat run scripts/setup-vesting.js --network localhost
+```

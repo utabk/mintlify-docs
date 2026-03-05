@@ -1,0 +1,84 @@
+---
+title: "CLI Overview"
+description: "Complete reference for all Dokrypt CLI commands."
+---
+
+## Global Flags
+
+Every command supports these flags:
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `-c, --config` | `string` | `dokrypt.yaml` | Path to configuration file |
+| `-v, --verbose` | `bool` | `false` | Enable verbose/debug output |
+| `-q, --quiet` | `bool` | `false` | Suppress non-error output |
+| `--json` | `bool` | `false` | Output results as JSON |
+| `--runtime` | `string` | `docker` | Container runtime (`docker` or `podman`) |
+
+## Command Groups
+
+### Project Lifecycle
+
+| Command | Description |
+|---------|-------------|
+| [`dokrypt init`](/cli/init) | Scaffold a new project from a template |
+| [`dokrypt up`](/cli/up) | Start all services |
+| [`dokrypt down`](/cli/down) | Stop all services |
+| [`dokrypt restart`](/cli/restart) | Restart services |
+| [`dokrypt status`](/cli/status) | Show running service status |
+| [`dokrypt logs`](/cli/logs) | Stream service logs |
+| [`dokrypt exec`](/cli/exec) | Execute command inside a service |
+
+### Blockchain Operations
+
+| Command | Description |
+|---------|-------------|
+| [`dokrypt chain`](/cli/chain) | Chain manipulation (mine, time-travel, balances, etc.) |
+| [`dokrypt fork`](/cli/fork) | Fork a live network |
+| [`dokrypt accounts`](/cli/accounts) | Account management |
+| [`dokrypt snapshot`](/cli/snapshot) | State snapshot management |
+| [`dokrypt bridge`](/cli/bridge) | Cross-chain bridge simulation |
+
+### Testing
+
+| Command | Description |
+|---------|-------------|
+| [`dokrypt test`](/cli/test) | Run tests, list suites, view reports |
+
+### Configuration & Templates
+
+| Command | Description |
+|---------|-------------|
+| [`dokrypt config`](/cli/config) | Validate and display configuration |
+| [`dokrypt template`](/cli/template) | Template management |
+| [`dokrypt marketplace`](/cli/marketplace) | Template marketplace |
+| [`dokrypt plugin`](/cli/plugin) | Plugin management |
+
+### System
+
+| Command | Description |
+|---------|-------------|
+| [`dokrypt doctor`](/cli/doctor) | System diagnostics |
+| [`dokrypt version`](/cli/version) | Version info |
+
+## Configuration Resolution
+
+Dokrypt resolves the configuration file in this order:
+
+1. `--config` flag (highest priority)
+2. `DOKRYPT_CONFIG` environment variable
+3. `dokrypt.yaml` in the current directory (default)
+
+## State Storage
+
+Dokrypt stores runtime data in `~/.dokrypt/`:
+
+```
+~/.dokrypt/
+├── state/          # Project runtime state (container IDs, ports)
+├── snapshots/      # Saved chain state snapshots
+├── reports/        # Test results and gas reports
+├── plugins/        # Globally installed plugins
+├── marketplace/    # Installed marketplace templates
+└── templates/      # Custom templates
+```

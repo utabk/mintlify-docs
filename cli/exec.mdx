@@ -1,0 +1,68 @@
+---
+title: "dokrypt exec"
+description: "Execute a command inside a running service container."
+---
+
+## Usage
+
+```bash
+dokrypt exec <service> <command> [args...] [flags]
+```
+
+## Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `service` | Yes | Service name (as defined in `dokrypt.yaml`) |
+| `command` | Yes | Command to execute |
+| `args` | No | Additional command arguments |
+
+## Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `-i, --interactive` | `bool` | `false` | Keep stdin open |
+| `-t, --tty` | `bool` | `false` | Allocate a pseudo-TTY |
+
+## Description
+
+Executes a command inside the container of a running service. The command runs with the container's default user and environment. Stdout and stderr are streamed back to your terminal.
+
+## Examples
+
+### Run a shell in the ethereum container
+
+```bash
+dokrypt exec ethereum sh
+```
+
+### Query the latest block with cast
+
+```bash
+dokrypt exec ethereum cast block latest
+```
+
+### Check IPFS node identity
+
+```bash
+dokrypt exec ipfs ipfs id
+```
+
+### List files in a container
+
+```bash
+dokrypt exec ethereum ls -la /
+```
+
+### Interactive bash session
+
+```bash
+dokrypt exec -it ethereum bash
+```
+
+## Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Service not found` | Service name doesn't match config | Check `dokrypt status` for service names |
+| `Container not running` | The service is stopped | Start it with `dokrypt up --service <name>` |

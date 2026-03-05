@@ -1,68 +1,139 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Dokrypt",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#f59e0b",
+    "light": "#fbbf24",
+    "dark": "#d97706"
   },
   "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/dokrypt/dokrypt"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Install",
+      "href": "/installation"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "configuration/dokrypt-yaml",
+              "configuration/chains",
+              "configuration/services"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Features",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "features/snapshots",
+              "features/forking",
+              "features/testing",
+              "features/chain-utils",
+              "features/accounts",
+              "features/bridge"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Advanced",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "advanced/plugins",
+              "advanced/marketplace",
+              "advanced/docker"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "CLI Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Overview",
             "pages": [
-              "api-reference/introduction"
+              "cli/overview"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Project Lifecycle",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "cli/init",
+              "cli/up",
+              "cli/down",
+              "cli/restart",
+              "cli/status",
+              "cli/logs",
+              "cli/exec"
+            ]
+          },
+          {
+            "group": "Blockchain Operations",
+            "pages": [
+              "cli/chain",
+              "cli/fork",
+              "cli/accounts",
+              "cli/snapshot",
+              "cli/bridge"
+            ]
+          },
+          {
+            "group": "Testing",
+            "pages": [
+              "cli/test"
+            ]
+          },
+          {
+            "group": "Configuration & Templates",
+            "pages": [
+              "cli/config",
+              "cli/template",
+              "cli/marketplace",
+              "cli/plugin"
+            ]
+          },
+          {
+            "group": "System",
+            "pages": [
+              "cli/doctor",
+              "cli/version"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Templates",
+        "groups": [
+          {
+            "group": "Templates",
+            "pages": [
+              "templates/overview",
+              "templates/evm-basic",
+              "templates/evm-token",
+              "templates/evm-nft",
+              "templates/evm-dao",
+              "templates/evm-defi"
             ]
           }
         ]
@@ -71,52 +142,21 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "GitHub",
+          "href": "https://github.com/dokrypt/dokrypt",
+          "icon": "github"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "npm",
+          "href": "https://www.npmjs.com/package/dokrypt",
+          "icon": "npm"
         }
       ]
     }
   },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/dokrypt/dokrypt"
     }
   }
 }

@@ -1,0 +1,189 @@
+---
+title: "Chains"
+description: "Configure blockchain nodes — engines, forking, mining, and accounts."
+---
+
+## Overview
+
+Each entry under `chains:` in `dokrypt.yaml` defines a local blockchain node. You can run multiple chains simultaneously for multi-chain development.
+
+## Basic Configuration
+
+```yaml
+chains:
+  ethereum:
+    engine: anvil
+    chain_id: 31337
+```
+
+## Engines
+
+Dokrypt supports three EVM node engines:
+
+| Engine | Description | Best For |
+|--------|-------------|----------|
+| `anvil` | Foundry's Anvil | Default. Fastest, most features. |
+| `hardhat` | Hardhat Network | Hardhat ecosystem compatibility |
+| `geth` | Go-Ethereum | Closest to production |
+
+```yaml
+chains:
+  ethereum:
+    engine: anvil     # or hardhat, geth
+```
+
+## Chain ID
+
+```yaml
+chains:
+  ethereum:
+    chain_id: 31337   # Any integer
+```
+
+Common local chain IDs: `31337` (Hardhat/Anvil default), `1337` (Geth default).
+
+## Block Time
+
+Controls how frequently blocks are produced.
+
+```yaml
+chains:
+  ethereum:
+    block_time: "2s"  # Produce a block every 2 seconds
+```
+
+| Value | Behavior |
+|-------|----------|
+| `"0s"` or omitted | Instant mining (mine on every transaction) |
+| `"1s"` - `"12s"` | Timed block production |
+| `"12s"` | Simulates Ethereum mainnet |
+
+## Mining Modes
+
+```yaml
+chains:
+  ethereum:
+    mining:
+      mode: auto       # auto | interval | manual
+      interval: "2s"   # Only for interval mode
+```
+
+| Mode | Behavior |
+|------|----------|
+| `auto` | Mine a block on every transaction |
+| `interval` | Mine at fixed intervals |
+| `manual` | Only mine when explicitly requested via `dokrypt chain mine` |
+
+## Accounts
+
+```yaml
+chains:
+  ethereum:
+    accounts: 10                        # Number of test accounts
+    account_balance: "10000"            # Balance in ETH
+    # OR
+    balance: "10000000000000000000000"  # Balance in wei
+```
+
+## EVM Configuration
+
+```yaml
+chains:
+  ethereum:
+    gas_limit: 30000000       # Block gas limit
+    base_fee: 1000000000      # Base fee in wei (1 gwei)
+    hardfork: shanghai        # london | shanghai | cancun
+    code_size_limit: 24576    # Max contract code size
+    auto_impersonate: false   # Auto-impersonate all accounts
+```
+
+## Forking
+
+Fork a live network on startup:
+
+```yaml
+chains:
+  ethereum:
+    fork:
+      network: mainnet          # Network name
+      block_number: 18500000    # Fork at specific block (0 = latest)
+```
+
+With a custom RPC URL:
+
+```yaml
+chains:
+  ethereum:
+    fork:
+      rpc_url: "${ALCHEMY_URL}"
+      block_number: 18500000
+```
+
+Supported network names: `mainnet`, `ethereum`, `sepolia`, `goerli`, `polygon`, `arbitrum`, `optimism`, `base`, `bsc`, `avalanche`.
+
+## Genesis Accounts
+
+Pre-fund specific addresses at genesis:
+
+```yaml
+chains:
+  ethereum:
+    genesis_accounts:
+      - address: "0x1234567890abcdef1234567890abcdef12345678"
+        balance: "1000000000000000000000"  # 1000 ETH in wei
+      - address: "0xabcdef1234567890abcdef1234567890abcdef12"
+        balance: "500000000000000000000"   # 500 ETH in wei
+```
+
+## Auto-Deploy
+
+Deploy contracts automatically when the chain starts:
+
+```yaml
+chains:
+  ethereum:
+    deploy:
+      - artifact: "contracts/MyToken.sol:MyToken"
+        constructor_args: ["MyToken", "MTK", 1000000]
+        label: "token"
+      - artifact: "contracts/Registry.sol:Registry"
+        label: "registry"
+```
+
+## Multi-Chain Setup
+
+Run multiple chains for cross-chain development:
+
+```yaml
+chains:
+  ethereum:
+    engine: anvil
+    chain_id: 31337
+    block_time: "2s"
+  polygon:
+    engine: anvil
+    chain_id: 137
+    block_time: "2s"
+  arbitrum:
+    engine: anvil
+    chain_id: 42161
+    block_time: "1s"
+```
+
+Use `--chain` flag to target a specific chain:
+
+```bash
+dokrypt chain info --chain polygon
+dokrypt chain mine 10 --chain arbitrum
+dokrypt fork mainnet --chain ethereum
+```
+
+## Default Ports
+
+Each chain gets a unique RPC port (assigned dynamically). The first chain typically gets port 8545.
+
+| Chain (in order) | Default RPC Port |
+|-----------------|-----------------|
+| First chain | 8545 |
+| Second chain | 8546 |
+| Third chain | 8547 |

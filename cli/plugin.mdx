@@ -1,0 +1,209 @@
+---
+title: "dokrypt plugin"
+description: "Discover, install, create, and publish plugins."
+---
+
+## Usage
+
+```bash
+dokrypt plugin <subcommand> [flags]
+```
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| [`install`](#install) | Install a plugin |
+| [`uninstall`](#uninstall) | Remove a plugin |
+| [`list`](#list) | List installed plugins |
+| [`search`](#search) | Search for plugins |
+| [`update`](#update) | Update a plugin |
+| [`create`](#create) | Scaffold a new plugin |
+| [`publish`](#publish) | Publish to registry |
+
+---
+
+## install
+
+Install a plugin from the registry or a local directory.
+
+```bash
+dokrypt plugin install <name> [flags]
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--version` | `string` | `latest` | Plugin version |
+| `--global` | `bool` | `false` | Install globally (`~/.dokrypt/plugins/`) |
+
+By default, plugins install locally to `./plugins/` in the project directory. Use `--global` to install to `~/.dokrypt/plugins/` for use across all projects.
+
+### Examples
+
+```bash
+dokrypt plugin install gas-reporter
+dokrypt plugin install gas-reporter --version 1.0.0 --global
+```
+
+---
+
+## uninstall
+
+Remove an installed plugin.
+
+```bash
+dokrypt plugin uninstall <name>
+```
+
+---
+
+## list
+
+List all installed plugins with details.
+
+```bash
+dokrypt plugin list
+```
+
+### Example Output
+
+```
+Name            Version   Type        Description                 Scope
+gas-reporter    1.0.0     container   Gas usage reporting tool    global
+my-plugin       0.1.0     binary      Custom plugin              local
+```
+
+---
+
+## search
+
+Search for plugins in the registry and locally.
+
+```bash
+dokrypt plugin search <query>
+```
+
+Searches both the remote registry and locally installed plugins by name, description, and author.
+
+### Example Output
+
+```
+Name            Version   Source     Description
+gas-reporter    1.0.0     registry  Gas usage reporting tool
+test-helper     0.5.0     local     Test helper utilities
+```
+
+---
+
+## update
+
+Update a plugin to a new version.
+
+```bash
+dokrypt plugin update <name> [flags]
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--version` | `string` | `latest` | Target version |
+
+Preserves the plugin's install scope (local or global).
+
+### Examples
+
+```bash
+dokrypt plugin update gas-reporter
+dokrypt plugin update gas-reporter --version 2.0.0
+```
+
+---
+
+## create
+
+Scaffold a new plugin directory with boilerplate.
+
+```bash
+dokrypt plugin create <name>
+```
+
+### Created Files
+
+| File | Description |
+|------|-------------|
+| `plugin.yaml` | Plugin manifest |
+| `Dockerfile` | Container image definition (Alpine 3.19) |
+| `README.md` | Usage documentation |
+
+### plugin.yaml format
+
+```yaml
+name: my-plugin
+version: "0.1.0"
+description: "My custom plugin"
+author: your-name
+license: MIT
+type: container    # "container" or "binary"
+container:
+  image: my-plugin:latest
+  ports: {}
+  environment: {}
+  depends_on: []
+commands:
+  - name: my-command
+    description: "Does something useful"
+hooks:
+  on_up: true
+  on_down: false
+```
+
+### Plugin Types
+
+| Type | Description |
+|------|-------------|
+| `container` | Runs as a Docker container alongside your services |
+| `binary` | Runs as a native binary on the host |
+
+### Plugin Hooks
+
+Plugins can subscribe to lifecycle hooks:
+
+| Hook | Triggered When |
+|------|---------------|
+| `on_init` | Dokrypt initializes |
+| `on_up` | Environment starts (`dokrypt up`) |
+| `on_down` | Environment stops (`dokrypt down`) |
+| `on_transaction` | A transaction is executed |
+| `on_block_mined` | A new block is mined |
+| `on_contract_deployed` | A contract is deployed |
+| `on_test_end` | Test suite completes |
+
+### Examples
+
+```bash
+dokrypt plugin create gas-reporter
+```
+
+---
+
+## publish
+
+Publish a plugin to the registry.
+
+```bash
+dokrypt plugin publish
+```
+
+Requires a valid `plugin.yaml` in the current directory with: `name`, `version`, `description`, `type` (must be `container` or `binary`).
+
+Requires `DOKRYPT_REGISTRY_TOKEN` environment variable.
+
+### Examples
+
+```bash
+cd my-plugin
+DOKRYPT_REGISTRY_TOKEN=your-token dokrypt plugin publish
+```

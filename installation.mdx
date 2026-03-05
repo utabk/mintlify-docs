@@ -1,0 +1,165 @@
+---
+title: "Installation"
+description: "Install Dokrypt on macOS, Linux, or Windows."
+---
+
+## Prerequisites
+
+Dokrypt requires **Docker** (or Podman) running on your machine. All chains and services run as containers.
+
+- [Docker Desktop](https://docs.docker.com/get-docker/) (macOS/Windows) or Docker Engine (Linux)
+- Docker API version **1.41** or higher
+- At least **5 GB** of free disk space
+
+Verify Docker is running:
+
+```bash
+docker info
+```
+
+## Install via npm (Recommended)
+
+The simplest way to install Dokrypt. Works on macOS, Linux, and Windows.
+
+```bash
+npm install -g dokrypt
+```
+
+This installs the correct platform-specific binary automatically. Supported platforms:
+
+| OS | Architecture | Package |
+|----|-------------|---------|
+| Linux | x64 | `@dokrypt/linux-x64` |
+| Linux | ARM64 | `@dokrypt/linux-arm64` |
+| macOS | Intel | `@dokrypt/darwin-x64` |
+| macOS | Apple Silicon | `@dokrypt/darwin-arm64` |
+| Windows | x64 | `@dokrypt/win32-x64` |
+
+Verify the installation:
+
+```bash
+dokrypt version
+```
+
+## Install via Docker
+
+Run Dokrypt directly as a Docker container:
+
+```bash
+docker pull ghcr.io/dokrypt/dokrypt:latest
+```
+
+Run commands with:
+
+```bash
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $(pwd):/workspace -w /workspace \
+  ghcr.io/dokrypt/dokrypt:latest init my-project
+```
+
+<Warning>
+  The Docker method requires mounting the Docker socket (`/var/run/docker.sock`) so Dokrypt can manage containers.
+</Warning>
+
+## Install from Binary
+
+Download pre-built binaries from [GitHub Releases](https://github.com/dokrypt/dokrypt/releases).
+
+<Tabs>
+  <Tab title="macOS / Linux">
+    ```bash
+    # Download the latest release (example for Linux x64)
+    curl -L https://github.com/dokrypt/dokrypt/releases/latest/download/dokrypt_linux_amd64.tar.gz -o dokrypt.tar.gz
+
+    # Extract
+    tar xzf dokrypt.tar.gz
+
+    # Move to PATH
+    sudo mv dokrypt /usr/local/bin/
+
+    # Verify
+    dokrypt version
+    ```
+  </Tab>
+  <Tab title="Windows">
+    1. Download `dokrypt_windows_amd64.zip` from [Releases](https://github.com/dokrypt/dokrypt/releases)
+    2. Extract the ZIP
+    3. Add the extracted folder to your system PATH
+    4. Open a new terminal and run `dokrypt version`
+  </Tab>
+</Tabs>
+
+## Build from Source
+
+Requires [Go 1.24+](https://go.dev/dl/).
+
+```bash
+git clone https://github.com/dokrypt/dokrypt.git
+cd dokrypt
+make build
+```
+
+The binary will be at `./bin/dokrypt`. Move it to your PATH:
+
+```bash
+sudo mv ./bin/dokrypt /usr/local/bin/
+```
+
+## Verify Installation
+
+Run the built-in diagnostics to check that everything is set up correctly:
+
+```bash
+dokrypt doctor
+```
+
+This checks:
+
+- Docker is installed and running
+- Docker API version meets minimum requirements
+- Sufficient disk space is available
+- Required ports (8545, 5001, 8080, 4000, etc.) are available
+
+Example output:
+
+```
+Dokrypt Doctor
+Platform: linux/amd64
+
+✓ Docker installed
+✓ Docker daemon running
+✓ Docker API version 1.45 (minimum 1.41)
+✓ Disk space: 45 GB free (minimum 5 GB)
+✓ Port 8545 available
+✓ Port 5001 available
+✓ Port 8080 available
+✓ Port 4000 available
+✓ Port 8000 available
+✓ Port 6688 available
+✓ Port 3000 available
+
+All checks passed!
+```
+
+## Updating
+
+```bash
+# npm
+npm update -g dokrypt
+
+# Docker
+docker pull ghcr.io/dokrypt/dokrypt:latest
+```
+
+## Uninstalling
+
+```bash
+# npm
+npm uninstall -g dokrypt
+
+# Binary
+sudo rm /usr/local/bin/dokrypt
+
+# Clean up data directory
+rm -rf ~/.dokrypt
+```

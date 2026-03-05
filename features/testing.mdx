@@ -1,0 +1,195 @@
+---
+title: "Testing Framework"
+description: "Run Solidity and JavaScript tests with gas reports, coverage, and parallel execution."
+---
+
+## Overview
+
+Dokrypt includes a built-in test runner that discovers and executes tests across multiple languages and frameworks. It supports:
+
+- **Automatic discovery** — Finds test files by convention
+- **Parallel execution** — Run tests concurrently
+- **Gas reporting** — Track gas usage per function
+- **Coverage analysis** — Measure code coverage
+- **Snapshot isolation** — Each test gets a clean chain state
+- **Built-in validation** — Health checks for your chain environment
+
+## Test Discovery
+
+Dokrypt automatically finds test files based on these patterns:
+
+| Language | File Patterns | Runner |
+|----------|--------------|--------|
+| Solidity | `*.t.sol`, `*.test.sol`, `*_test.sol` | `forge test` |
+| JavaScript | `*.test.js` | `node` or `npx hardhat test` |
+| TypeScript | `*.test.ts` | `npx hardhat test` |
+
+Default search directories: `test/`, `tests/`, `contracts/test/`
+
+## Quick Start
+
+```bash
+# Run all tests
+dokrypt test run
+
+# Run with gas report
+dokrypt test run --gas-report
+
+# Filter by test name
+dokrypt test run --filter "test_transfer"
+
+# Run a specific suite
+dokrypt test run --suite unit
+
+# JSON output for CI
+dokrypt test run --json > results.json
+```
+
+## Configuration
+
+Configure test settings in `dokrypt.yaml`:
+
+```yaml
+tests:
+  dir: test/                    # Test directory
+  timeout: 120s                 # Per-test timeout
+  parallel: 8                   # Max parallel tests
+  snapshot_isolation: true      # Snapshot per test
+  gas_report: true              # Always generate gas reports
+  coverage: false               # Coverage analysis
+  suites:
+    unit:
+      pattern: "test/unit/**/*.t.sol"
+      timeout: 30s
+    integration:
+      pattern: "test/integration/**/*.t.sol"
+      timeout: 120s
+      services: [ethereum, ipfs]
+```
+
+CLI flags override config values.
+
+## Snapshot Isolation
+
+When `--snapshot` is enabled (or `snapshot_isolation: true` in config), each test:
+
+1. Takes a snapshot before running
+2. Executes the test
+3. Reverts to the snapshot after the test completes
+
+This ensures tests don't affect each other's state — every test sees a clean environment.
+
+```bash
+dokrypt test run --snapshot
+```
+
+## Gas Reporting
+
+Enable gas tracking to see how much gas each contract function uses:
+
+```bash
+dokrypt test run --gas-report
+```
+
+Output:
+
+```
+Gas Report:
+  Counter.increment()       26,342 avg    26,342 min    26,342 max
+  Counter.setNumber()       43,521 avg    43,521 min    43,521 max
+  SimpleToken.transfer()    51,204 avg    46,320 min    56,088 max
+  SimpleToken.approve()     46,145 avg    46,145 min    46,145 max
+```
+
+## Built-in Validation Suite
+
+If no test files are discovered, Dokrypt runs its built-in validation suite to check chain health:
+
+| Test | What It Checks |
+|------|---------------|
+| `chain_is_running` | Basic RPC connectivity |
+| `accounts_available` | At least one account exists |
+| `chain_id_valid` | Chain ID is non-zero |
+| `mining_works` | Blocks can be mined |
+| `snapshot_restore` | Snapshot/revert works correctly |
+
+## Test Reports
+
+Test results are persisted to `~/.dokrypt/reports/<project>/latest.json`. View the last report:
+
+```bash
+dokrypt test report
+```
+
+## Assertion Helpers (Go SDK)
+
+If building custom test suites using Dokrypt's Go packages, the `testrunner` package provides assertion helpers:
+
+| Function | Description |
+|----------|-------------|
+| `AssertTxSuccess(t, tx)` | Assert transaction succeeded |
+| `AssertTxReverted(t, tx)` | Assert transaction reverted |
+| `AssertTxRevertedWith(t, tx, reason)` | Assert specific revert reason |
+| `AssertGasBelow(t, tx, maxGas)` | Assert gas usage is below threshold |
+| `AssertEvent(t, tx, eventName, args)` | Assert event was emitted |
+| `AssertEventCount(t, tx, name, count)` | Assert number of events emitted |
+| `AssertNoEvent(t, tx, eventName)` | Assert event was not emitted |
+| `AssertBalance(t, actual, expected)` | Assert balance (string comparison) |
+| `AssertETHBalance(t, actual, expected)` | Assert balance (*big.Int) |
+| `AssertJSONEqual(t, actual, expected)` | Assert JSON equality |
+
+## Fixtures
+
+The `Fixture` type provides snapshot-based isolation for individual tests:
+
+```go
+// Create a fixture (takes snapshot)
+fixture := testrunner.NewFixture(ctx, chain)
+
+// ... run test logic ...
+
+// Revert to pre-test state
+fixture.Revert(ctx)
+```
+
+Or use the convenience wrapper:
+
+```go
+testrunner.WithFixture(ctx, chain, func() {
+    // This code runs with snapshot isolation
+    // State is automatically reverted after the function returns
+})
+```
+
+## CI Integration
+
+Use JSON output for CI pipelines:
+
+```bash
+dokrypt test run --json > test-results.json
+```
+
+The JSON format includes:
+
+```json
+{
+  "total": 4,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "duration": "44ms",
+  "suites": [
+    {
+      "name": "contracts",
+      "tests": [
+        {
+          "name": "test_increment",
+          "status": "passed",
+          "duration": "12ms",
+          "gas_used": 26342
+        }
+      ]
+    }
+  ]
+}
+```

@@ -1,0 +1,169 @@
+---
+title: "Chain Utilities"
+description: "Time-travel, set balances, mine blocks, impersonate accounts, and more."
+---
+
+## Overview
+
+Chain utilities give you full control over your local blockchain's state and behavior. These are essential for testing time-dependent logic, simulating edge cases, and debugging transactions.
+
+## Mining Blocks
+
+Force mine one or more blocks:
+
+```bash
+# Mine 1 block
+dokrypt chain mine
+
+# Mine 100 blocks
+dokrypt chain mine 100
+```
+
+Mining is useful for:
+- Advancing the chain after sending transactions
+- Simulating block production in manual mining mode
+- Testing block-dependent logic
+
+## Time Travel
+
+Advance the blockchain's clock without waiting:
+
+```bash
+# Advance 1 hour
+dokrypt chain time-travel 1h
+
+# Advance 7 days
+dokrypt chain time-travel 7d
+
+# Advance 30 minutes
+dokrypt chain time-travel 30m
+
+# Advance 3600 seconds (raw number)
+dokrypt chain time-travel 3600
+```
+
+After advancing time, Dokrypt automatically mines a block to apply the timestamp change.
+
+### Common Use Cases
+
+```bash
+# Test a vesting cliff (6 months)
+dokrypt chain time-travel 180d
+
+# Test a timelock delay (24 hours)
+dokrypt chain time-travel 24h
+
+# Test epoch transitions (1 week)
+dokrypt chain time-travel 7d
+```
+
+<Tip>
+  Combine time-travel with snapshots for efficient testing: snapshot before time-travel, test, then restore.
+</Tip>
+
+## Setting Balances
+
+Set any account's ETH balance:
+
+```bash
+dokrypt chain set-balance 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 500
+```
+
+The amount is in ETH (not wei). Supports decimals:
+
+```bash
+dokrypt chain set-balance 0x1234...abcd 0.5
+```
+
+## Impersonating Accounts
+
+Impersonate any address — transactions from this address will succeed without the private key:
+
+```bash
+# Start impersonating
+dokrypt chain impersonate 0xdead...beef
+
+# Stop impersonating
+dokrypt chain stop-impersonating 0xdead...beef
+```
+
+This is critical for:
+- Testing admin-only functions on forked contracts
+- Simulating whale behavior
+- Interacting with governance contracts as specific voters
+
+### Example: Transfer tokens from a whale
+
+```bash
+# Fork mainnet
+dokrypt fork mainnet
+
+# Impersonate a USDC whale
+dokrypt chain impersonate 0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503
+
+# Now you can call transfer() from this address
+```
+
+## Setting Gas Price
+
+Control the base gas price for testing gas-sensitive logic:
+
+```bash
+# Set gas price to 50 gwei
+dokrypt chain set-gas-price 50
+```
+
+## Resetting the Chain
+
+Reset to genesis state or a new fork:
+
+```bash
+# Reset to genesis
+dokrypt chain reset
+
+# Reset to a mainnet fork at a specific block
+dokrypt chain reset --fork https://eth.llamarpc.com --block 18000000
+```
+
+## Chain Information
+
+Display current chain state:
+
+```bash
+dokrypt chain info
+```
+
+Output:
+
+```
+Chain: ethereum
+  Chain ID:    31337
+  RPC URL:     http://localhost:8545
+  Block:       42
+  Timestamp:   1705312200
+```
+
+## Multi-Chain Usage
+
+For projects with multiple chains, use `--chain` to target a specific one:
+
+```bash
+dokrypt chain mine 10 --chain polygon
+dokrypt chain time-travel 1d --chain arbitrum
+dokrypt chain set-balance 0x1234... 100 --chain base
+dokrypt chain info --chain l2
+```
+
+## RPC Methods Used
+
+Under the hood, Dokrypt uses these JSON-RPC methods:
+
+| Command | Anvil Method | Hardhat Fallback |
+|---------|-------------|------------------|
+| `mine` | `anvil_mine` | `evm_mine` (loop) |
+| `set-balance` | `anvil_setBalance` | `hardhat_setBalance` |
+| `time-travel` | `evm_increaseTime` | `evm_increaseTime` |
+| `set-gas-price` | `anvil_setMinGasPrice` | `hardhat_setNextBlockBaseFeePerGas` |
+| `impersonate` | `anvil_impersonateAccount` | `hardhat_impersonateAccount` |
+| `stop-impersonating` | `anvil_stopImpersonatingAccount` | `hardhat_stopImpersonatingAccount` |
+| `reset` | `anvil_reset` | `hardhat_reset` |

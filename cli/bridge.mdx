@@ -1,0 +1,149 @@
+---
+title: "dokrypt bridge"
+description: "Simulate cross-chain transfers and bridge operations."
+---
+
+## Usage
+
+```bash
+dokrypt bridge <subcommand> [flags]
+```
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| [`send`](#send) | Simulate a cross-chain transfer |
+| [`status`](#status) | Show bridge queue status |
+| [`relay`](#relay) | Force relay pending messages |
+| [`config`](#config) | Show bridge configuration |
+
+---
+
+## send
+
+Simulate a cross-chain bridge transfer between two local chains.
+
+```bash
+dokrypt bridge send <from-chain> <to-chain> <amount> [flags]
+```
+
+### Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `from-chain` | Yes | Source chain name |
+| `to-chain` | Yes | Destination chain name |
+| `amount` | Yes | Amount in ETH |
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--token` | `string` | native ETH | Token symbol to bridge |
+| `--from` | `string` | account[0] | Sender address |
+
+### How It Works
+
+1. Resolves RPC endpoints for both chains from `dokrypt.yaml`
+2. Determines the sender address (from `--from` flag or first account on source chain)
+3. Sends a transaction to the bridge contract (`0x...B12D`) on the source chain
+4. Mines a block on the source chain
+5. Reads the recipient's current balance on the destination chain
+6. Adds the bridged amount to the balance on the destination chain via `anvil_setBalance`
+
+### Examples
+
+```bash
+# Bridge 100 ETH from ethereum to polygon
+dokrypt bridge send ethereum polygon 100
+
+# Bridge with a specific sender
+dokrypt bridge send ethereum arbitrum 50.5 --from 0x1234...abcd
+
+# Bridge tokens
+dokrypt bridge send polygon bsc 1000 --token USDC
+```
+
+<Note>
+  This is a simulated bridge for local development. It directly modifies balances on the destination chain — no actual cross-chain messaging occurs.
+</Note>
+
+---
+
+## status
+
+Show the bridge queue status from the configuration.
+
+```bash
+dokrypt bridge status
+```
+
+Queries bridge service endpoints for pending messages and displays:
+
+- Service name and connected chains
+- Relay delay and confirmation requirements
+- Queue status (pending/completed messages)
+
+### Example Output
+
+```
+Bridge          Chains              Relay Delay   Confirmations   Queue
+eth-polygon     ethereum → polygon  30s           12              0 pending
+polygon-arb     polygon → arbitrum  15s           64              2 pending
+```
+
+---
+
+## relay
+
+Force relay all pending bridge messages by mining confirmation blocks.
+
+```bash
+dokrypt bridge relay [flags]
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--blocks` | `int` | max from config | Number of blocks to mine |
+
+### How It Works
+
+1. Determines block count from `--blocks` flag or from the maximum `confirmation_blocks` in bridge config
+2. Mines blocks on each chain referenced by bridge services
+3. Triggers bridge service relay endpoints
+4. Reports the number of relayed messages
+
+### Examples
+
+```bash
+# Relay with default block count
+dokrypt bridge relay
+
+# Mine 5 blocks and relay
+dokrypt bridge relay --blocks 5
+```
+
+---
+
+## config
+
+Show the detailed bridge configuration from `dokrypt.yaml`.
+
+```bash
+dokrypt bridge config
+```
+
+Displays each bridge's configuration including connected chains, engine, chain IDs, and block times.
+
+### Example Output
+
+```
+Bridge: eth-polygon
+  Chain A: ethereum (anvil, chain_id=31337, block_time=2s)
+  Chain B: polygon (anvil, chain_id=137, block_time=2s)
+  Relay Delay: 30s
+  Confirmations: 12
+```

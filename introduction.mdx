@@ -1,0 +1,113 @@
+---
+title: "Introduction"
+description: "Dokrypt is the Web3-native containerization platform for building, testing, and deploying decentralized applications."
+---
+
+## What is Dokrypt?
+
+Dokrypt is **Docker for Web3** — a CLI tool that gives you a complete local development environment for building decentralized applications. It manages local blockchain nodes, IPFS, block explorers, oracles, indexers, and more, all from a single `dokrypt.yaml` configuration file.
+
+Think of it as `docker-compose` but purpose-built for Web3. One command spins up everything you need.
+
+## Why Dokrypt?
+
+Building dApps requires juggling multiple tools: a local chain (Anvil, Hardhat, Geth), IPFS for storage, a block explorer for debugging, an oracle for price feeds, an indexer for querying data. Setting this up manually is tedious and error-prone.
+
+Dokrypt handles all of this:
+
+- **One config file** — Define your entire stack in `dokrypt.yaml`
+- **One command** — `dokrypt up` starts everything
+- **Built-in templates** — Scaffold complete projects (DeFi, NFT, DAO, Token) in seconds
+- **State snapshots** — Save, restore, diff, export, and import chain state
+- **Chain forking** — Fork mainnet or any EVM chain at any block
+- **Testing framework** — Run Solidity and JS/TS tests with gas reports and coverage
+- **Chain utilities** — Time-travel, set balances, mine blocks, impersonate accounts
+- **Cross-chain bridge** — Simulate multi-chain transfers locally
+
+## Quick Example
+
+```bash
+# Install
+npm install -g dokrypt
+
+# Create a new DeFi project
+dokrypt init my-defi-app --template evm-defi
+
+# Start everything
+cd my-defi-app
+dokrypt up
+
+# Your environment is running:
+# ✓ ethereum    Ready  ▸ http://localhost:8545
+# ✓ ipfs        Ready  ▸ http://localhost:5001
+# ✓ blockscout  Ready  ▸ http://localhost:4000
+# ✓ oracle      Ready  ▸ chainlink-mock
+```
+
+## Architecture
+
+Dokrypt runs on top of Docker (or Podman). Each chain and service runs as a container, connected via Docker networks. The CLI orchestrates container lifecycle, health checks, dependency ordering, and networking.
+
+```
+┌─────────────────────────────────────────┐
+│                dokrypt CLI              │
+├─────────────────────────────────────────┤
+│  Engine (orchestration)                 │
+│  ├── Chain Manager (Anvil/Hardhat/Geth) │
+│  ├── Service Orchestrator               │
+│  ├── Network Manager                    │
+│  ├── Plugin Manager                     │
+│  └── Event Bus                          │
+├─────────────────────────────────────────┤
+│  Container Runtime (Docker / Podman)    │
+└─────────────────────────────────────────┘
+```
+
+## Supported Chains
+
+Dokrypt supports all EVM-compatible chains for local development and forking:
+
+| Chain | Fork Support | Chain ID (mainnet) |
+|-------|-------------|-------------------|
+| Ethereum | Yes | 1 |
+| Polygon | Yes | 137 |
+| Arbitrum | Yes | 42161 |
+| Optimism | Yes | 10 |
+| Base | Yes | 8453 |
+| BSC | Yes | 56 |
+| Avalanche | Yes | 43114 |
+| Sepolia | Yes | 11155111 |
+
+## Supported Services
+
+| Service | Type | Description |
+|---------|------|-------------|
+| IPFS | `ipfs` | Decentralized file storage |
+| Blockscout | `blockscout` | Block explorer |
+| Otterscan | `otterscan` | Lightweight block explorer |
+| The Graph | `subgraph` | Indexing protocol |
+| Ponder | `ponder` | Indexing framework |
+| Chainlink Mock | `chainlink-mock` | Oracle price feeds |
+| Pyth Mock | `pyth-mock` | Pyth oracle mock |
+| Grafana | `grafana` | Monitoring dashboards |
+| Prometheus | `prometheus` | Metrics collection |
+| Faucet | `faucet` | Test token faucet |
+| Mock Bridge | `mock-bridge` | Cross-chain bridge simulator |
+| Custom | `custom` | Any Docker image |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Dokrypt via npm, Docker, or binary download.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Build your first dApp in under 5 minutes.
+  </Card>
+  <Card title="Templates" icon="layer-group" href="/templates/overview">
+    Explore the 5 built-in project templates.
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/cli/overview">
+    Full reference for all 58 CLI commands.
+  </Card>
+</CardGroup>

@@ -1,0 +1,208 @@
+---
+title: "dokrypt.yaml"
+description: "Complete reference for the dokrypt.yaml configuration file."
+---
+
+## Overview
+
+`dokrypt.yaml` is the central configuration file for every Dokrypt project. It defines your blockchain nodes, services, settings, test configuration, plugins, and lifecycle hooks.
+
+## Full Schema
+
+```yaml
+version: "1"                          # Config version (required)
+name: my-project                      # Project name (required)
+
+settings:                             # Global settings
+  runtime: docker                     # Container runtime: docker | podman
+  log_level: info                     # Log level: debug | info | warn | error
+  block_time: "2s"                    # Default block time for all chains
+  accounts: 10                        # Default funded account count
+  account_balance: "10000"            # Default balance per account (ETH)
+  telemetry: false                    # Anonymous telemetry
+
+profiles:                             # Named configuration profiles
+  staging:
+    settings:
+      log_level: debug
+      accounts: 5
+
+chains:                               # Blockchain nodes
+  ethereum:                           # Chain identifier
+    engine: anvil                     # Engine: anvil | hardhat | geth
+    chain_id: 31337                   # Numeric chain ID
+    block_time: "2s"                  # Block production interval
+    accounts: 10                      # Override global account count
+    balance: "10000000000000000000000" # Balance in wei (alternative)
+    account_balance: "10000"          # Balance in ETH (alternative)
+    gas_limit: 30000000               # Block gas limit
+    base_fee: 1000000000              # Base fee (wei)
+    hardfork: shanghai                # EVM version: london | shanghai | cancun
+    code_size_limit: 24576            # Max contract code size (bytes)
+    auto_impersonate: false           # Auto-impersonate all accounts
+    mining:
+      mode: auto                      # Mining: auto | interval | manual
+      interval: "2s"                  # Interval mode block time
+    fork:                             # Fork configuration
+      network: mainnet                # Network name or custom
+      block_number: 18500000          # Fork at block (0 = latest)
+      rpc_url: ""                     # Custom RPC URL
+    genesis_accounts:                 # Pre-funded genesis accounts
+      - address: "0x1234..."
+        balance: "1000000000000000000000"
+    deploy:                           # Auto-deploy contracts on startup
+      - artifact: "contracts/MyToken.sol:MyToken"
+        constructor_args: ["MyToken", "MTK", 1000000]
+        label: "token"
+
+services:                             # External services
+  ipfs:
+    type: ipfs                        # Service type
+    port: 5001                        # Primary port
+    gateway_port: 8080                # IPFS gateway port
+  explorer:
+    type: blockscout                  # Block explorer
+    chain: ethereum                   # Connected chain
+    port: 4000
+    depends_on: [ethereum]            # Start after chain
+  indexer:
+    type: subgraph                    # Subgraph indexer
+    chain: ethereum
+  oracle:
+    type: chainlink-mock              # Mock oracle
+    chain: ethereum
+    depends_on: [ethereum]
+    features:                         # Oracle-specific config
+      feeds:
+        - pair: ETH/USD
+          price: 2000.00
+          decimals: 8
+          update_interval: 60s
+          volatility:
+            enabled: true
+            max_deviation_pct: 2.0
+  custom-service:
+    type: custom                      # Any Docker image
+    image: my-image:latest
+    command: ["--flag", "value"]
+    ports:
+      http: 3000
+    volumes:
+      - "./data:/app/data"
+    environment:
+      API_KEY: "xxx"
+    build:
+      context: ./my-service
+      dockerfile: Dockerfile
+    healthcheck:
+      http: "http://localhost:3000/health"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+plugins:                              # Plugin configuration
+  gas-reporter:
+    version: "1.0.0"
+    config:
+      output: "gas-report.json"
+
+tests:                                # Test runner configuration
+  dir: test/
+  timeout: 120s
+  parallel: 8
+  snapshot_isolation: true
+  gas_report: true
+  coverage: false
+  suites:
+    unit:
+      pattern: "test/unit/**/*.t.sol"
+      timeout: 30s
+    integration:
+      pattern: "test/integration/**/*.t.sol"
+      timeout: 120s
+      services: [ethereum, ipfs]
+
+hooks:                                # Lifecycle hooks
+  pre_up: "echo 'Starting...'"
+  post_up: "npx hardhat run scripts/deploy.js"
+  pre_down: "echo 'Stopping...'"
+  post_down: "echo 'Stopped'"
+  post_snapshot: "echo 'Snapshot saved'"
+```
+
+## Environment Variable Interpolation
+
+Use `${VAR}` syntax to reference environment variables:
+
+```yaml
+chains:
+  ethereum:
+    fork:
+      rpc_url: "${ALCHEMY_RPC_URL}"
+
+services:
+  custom:
+    environment:
+      API_KEY: "${MY_API_KEY}"
+```
+
+## Template Variables
+
+Configuration templates (`.tmpl` files) support Go template syntax:
+
+```yaml
+name: {{ .ProjectName }}
+chains:
+  {{ .ChainName }}:
+    engine: {{ .Engine }}
+    chain_id: {{ .ChainID }}
+```
+
+Internal template resolution also supports `{{chain.rpc_url}}` style variables for service configurations that need to reference chain endpoints.
+
+## Profiles
+
+Profiles let you override settings for different environments:
+
+```yaml
+profiles:
+  test:
+    settings:
+      log_level: debug
+      accounts: 3
+  staging:
+    settings:
+      accounts: 20
+      account_balance: "100000"
+```
+
+Activate a profile:
+
+```bash
+dokrypt up --profile test
+```
+
+## Validation
+
+Validate your configuration:
+
+```bash
+dokrypt config validate
+```
+
+## Defaults
+
+If not specified, these defaults are applied:
+
+| Setting | Default |
+|---------|---------|
+| `runtime` | `docker` |
+| `log_level` | `info` |
+| `accounts` | `10` |
+| `account_balance` | `10000` (ETH) |
+| `engine` | `anvil` |
+| `chain_id` | `31337` |
+| `block_time` | `0s` (instant mining) |
+| `hardfork` | `shanghai` |
+| `mining.mode` | `auto` |
+| `test.parallel` | `4` |

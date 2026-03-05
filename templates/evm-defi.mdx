@@ -1,0 +1,268 @@
+---
+title: "evm-defi"
+description: "Complete DeFi stack — AMM, lending vault, staking rewards, and price oracle."
+---
+
+## Overview
+
+The most comprehensive template. Includes a Uniswap-style AMM (Factory, Pair, Router), a collateralized lending vault, Synthetix-style staking rewards, and a price oracle. Comes with IPFS, a subgraph indexer, Blockscout explorer, and Chainlink mock oracle as services.
+
+| | |
+|---|---|
+| **Difficulty** | Advanced |
+| **Category** | DeFi |
+| **Chains** | Ethereum |
+| **Services** | IPFS, Subgraph, Blockscout, Chainlink Mock |
+| **License** | Apache-2.0 |
+
+## Quick Start
+
+```bash
+dokrypt init my-defi --template evm-defi
+cd my-defi
+dokrypt up
+# ✓ ethereum    http://localhost:8545
+# ✓ ipfs        http://localhost:5001
+# ✓ blockscout  http://localhost:4000
+# ✓ oracle      chainlink-mock
+```
+
+## Generated Files
+
+```
+my-defi/
+├── dokrypt.yaml
+├── foundry.toml
+├── README.md
+├── contracts/
+│   ├── token/DeFiToken.sol
+│   ├── amm/
+│   │   ├── Factory.sol
+│   │   ├── Pair.sol
+│   │   └── Router.sol
+│   ├── lending/
+│   │   ├── LendingVault.sol
+│   │   └── InterestModel.sol
+│   ├── staking/
+│   │   └── StakingRewards.sol
+│   └── oracle/
+│       └── PriceOracle.sol
+├── test/
+│   ├── amm/Factory.t.sol
+│   ├── amm/Router.t.sol
+│   ├── lending/LendingVault.t.sol
+│   └── staking/StakingRewards.t.sol
+└── scripts/
+    ├── deploy-amm.js
+    ├── deploy-lending.js
+    └── deploy-staking.js
+```
+
+## Contracts
+
+### DeFiToken.sol
+
+ERC-20 with governance delegation, minting, and burning.
+
+**Constructor:**
+```solidity
+constructor(string memory name, string memory symbol, uint256 initialSupply)
+```
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| Standard ERC-20 | Public | `transfer`, `approve`, `transferFrom` |
+| `mint(to, amount)` | Owner | Mint new tokens |
+| `burn(amount)` | Public | Burn your tokens |
+| `delegate(delegatee)` | Public | Delegate voting power |
+
+---
+
+### AMM Module
+
+A Uniswap V2-style automated market maker with three contracts.
+
+#### Factory.sol
+
+Creates and tracks liquidity pairs using CREATE2 for deterministic addresses.
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `createPair(tokenA, tokenB)` | Public | Deploy a new pair contract |
+| `computePairAddress(tokenA, tokenB)` | View | Predict pair address before creation |
+| `allPairsLength()` | View | Total number of pairs |
+| `setFeeTo(newFeeTo)` | Owner | Set fee recipient |
+
+Uses CREATE2 with salt `keccak256(abi.encodePacked(token0, token1))`.
+
+#### Pair.sol
+
+Liquidity pool implementing the `x * y = k` constant product invariant.
+
+**Key Constants:**
+- `MINIMUM_LIQUIDITY = 1000` — Permanently locked on first mint
+- `SWAP_FEE = 3` — 0.3% swap fee (3/1000)
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `initialize(token0, token1)` | Factory | One-time pair setup |
+| `mint(to)` | Public | Add liquidity, receive LP tokens |
+| `burn(to)` | Public | Remove liquidity, burn LP tokens |
+| `swap(amountOut0, amountOut1, to)` | Public | Swap tokens (constant product enforced) |
+| `skim(to)` | Public | Withdraw excess tokens |
+| `sync()` | Public | Sync reserves to actual balances |
+
+**Features:**
+- ERC-20 LP tokens for liquidity providers
+- TWAP (Time-Weighted Average Price) oracle via `price0CumulativeLast` and `price1CumulativeLast`
+- Flash swap support
+
+**Events:** `Mint`, `Burn`, `Swap`, `Sync`
+
+#### Router.sol
+
+High-level interface with deadline protection and slippage guards.
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline)` | Public | Provide liquidity with slippage protection |
+| `removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline)` | Public | Remove liquidity |
+| `swapExactTokensForTokens(amountIn, amountOutMin, path[], to, deadline)` | Public | Swap with exact input |
+| `swapTokensForExactTokens(amountOut, amountInMax, path[], to, deadline)` | Public | Swap with exact output |
+
+All functions have `deadline` parameter — reverts if `block.timestamp > deadline`.
+
+**Events:** `LiquidityAdded`, `LiquidityRemoved`, `SwapExecuted`
+
+---
+
+### LendingVault.sol
+
+Collateralized lending with liquidation mechanics.
+
+**Constants:**
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `COLLATERAL_FACTOR` | 75% (7500 bp) | Max borrow relative to collateral |
+| `LIQUIDATION_THRESHOLD` | 80% (8000 bp) | Position becomes liquidatable |
+| `LIQUIDATION_BONUS` | 105% (10500 bp) | 5% bonus for liquidators |
+
+**Functions:**
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `depositCollateral(token, amount)` | Public | Deposit collateral |
+| `withdrawCollateral(token, amount)` | Public | Withdraw collateral (health check) |
+| `borrow(amount)` | Public | Borrow against collateral |
+| `repay(amount)` | Public | Repay debt |
+| `liquidate(borrower, collateralToken, debtRepaid)` | Public | Liquidate unhealthy position |
+| `addCollateral(token)` | Owner | Add supported collateral type |
+| `accrueInterest()` | Public | Update interest accrual |
+| `getUserHealthFactor(user)` | View | Check position health |
+| `isLiquidationEligible(user)` | View | Check if liquidatable |
+| `getMaxBorrowable(user)` | View | Max borrow amount |
+
+**Liquidation Flow:**
+1. Borrower's health factor drops below threshold (collateral value / debt > 80%)
+2. Liquidator calls `liquidate()` with the debt amount to repay
+3. Liquidator receives collateral worth 105% of repaid debt (5% bonus)
+4. Borrower's debt and collateral are reduced accordingly
+
+**Events:** `CollateralDeposited`, `CollateralWithdrawn`, `Borrowed`, `Repaid`, `Liquidated`, `InterestAccrued`
+
+---
+
+### InterestModel.sol
+
+Kinked linear interest rate model. Rates increase slowly at low utilization and steeply at high utilization.
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `calculateInterestRate(totalBorrowed, totalAvailable)` | View | Returns annual interest rate |
+
+---
+
+### StakingRewards.sol
+
+Same Synthetix-style staking as the `evm-token` template. See [evm-token StakeRewards](/templates/evm-token#stakerewardssol) for full details.
+
+---
+
+### PriceOracle.sol
+
+Simple owner-managed price feed for the lending vault.
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `setPrice(token, price)` | Owner | Set token price |
+| `setPrices(tokens[], prices[])` | Owner | Batch update prices |
+| `getPrice(token)` | View | Get current price |
+| `isPriceStale(token)` | View | Check if price is > 1 hour old |
+
+## Deployment
+
+### Deploy AMM
+
+```bash
+npx hardhat run scripts/deploy-amm.js --network localhost
+```
+
+Deploys Factory, Router, test tokens, creates a pair, and adds initial liquidity.
+
+### Deploy Lending
+
+```bash
+npx hardhat run scripts/deploy-lending.js --network localhost
+```
+
+Deploys borrow token (USDT), collateral token (WETH), InterestModel, PriceOracle, and LendingVault. Configures prices, adds collateral support, and supplies initial tokens.
+
+### Deploy Staking
+
+```bash
+npx hardhat run scripts/deploy-staking.js --network localhost
+```
+
+Deploys staking and reward tokens, StakingRewards contract, transfers reward funds, sets duration, and notifies the contract.
+
+## Testing Workflows
+
+### AMM Testing
+
+```bash
+# Start environment
+dokrypt up
+
+# Deploy AMM
+npx hardhat run scripts/deploy-amm.js --network localhost
+
+# Test swaps, liquidity operations
+dokrypt test run --filter "amm"
+```
+
+### Lending Testing with Price Manipulation
+
+```bash
+# Deploy lending vault
+npx hardhat run scripts/deploy-lending.js --network localhost
+
+# Deposit collateral and borrow
+# Then manipulate oracle price to test liquidations
+
+# Run lending tests
+dokrypt test run --filter "lending"
+```
+
+### Staking with Time Travel
+
+```bash
+# Deploy staking
+npx hardhat run scripts/deploy-staking.js --network localhost
+
+# Stake tokens, then fast-forward time
+dokrypt chain time-travel 30d
+
+# Check accumulated rewards
+dokrypt test run --filter "staking"
+```

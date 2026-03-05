@@ -1,0 +1,186 @@
+---
+title: "State Snapshots"
+description: "Save, restore, diff, export, and import chain state for reproducible testing."
+---
+
+## Overview
+
+Snapshots let you capture the entire state of your local blockchain at a point in time and restore it later. This is essential for:
+
+- **Reproducible tests** — Reset to a known state between test runs
+- **Fast iteration** — Deploy contracts once, snapshot, then restore after each experiment
+- **Team sharing** — Export snapshots and share with teammates
+- **Debugging** — Snapshot before a failure and restore to investigate
+
+## How Snapshots Work
+
+Dokrypt snapshots use the EVM's built-in `evm_snapshot` and `evm_revert` JSON-RPC methods. When you save a snapshot:
+
+1. A `evm_snapshot` call returns a snapshot ID
+2. Metadata (name, block number, chain ID, description, tags) is saved to `~/.dokrypt/snapshots/<project>/`
+
+When you restore:
+
+1. `evm_revert` is called with the snapshot ID
+2. The chain state rolls back to the exact state at the time of the snapshot
+3. A new snapshot is taken at the same point (EVM snapshots are consumed on revert)
+
+## Quick Start
+
+```bash
+# Start your environment
+dokrypt up
+
+# Deploy contracts, do some setup...
+
+# Save the current state
+dokrypt snapshot save after-deploy --description "Contracts deployed and configured"
+
+# Run some experiments, make changes...
+
+# Restore back to the clean state
+dokrypt snapshot restore after-deploy
+
+# Chain is now back to the exact state after deployment
+```
+
+## Snapshot Lifecycle
+
+```
+┌─────────┐     ┌────────┐     ┌─────────┐     ┌──────────┐
+│  save   │ ──▶ │  list  │ ──▶ │ restore │ ──▶ │  delete  │
+└─────────┘     └────────┘     └─────────┘     └──────────┘
+     │                              │
+     ▼                              ▼
+┌─────────┐                   ┌──────────┐
+│ export  │                   │  import  │
+└─────────┘                   └──────────┘
+```
+
+## Commands
+
+### Save
+
+```bash
+dokrypt snapshot save <name> [--description "..."] [--tags tag1 --tags tag2]
+```
+
+### Restore
+
+```bash
+dokrypt snapshot restore <name>
+```
+
+### List
+
+```bash
+dokrypt snapshot list
+```
+
+### Delete
+
+```bash
+dokrypt snapshot delete <name>
+```
+
+### Export / Import
+
+```bash
+# Export to share with teammates
+dokrypt snapshot export my-snapshot ./backup.json
+
+# Import on another machine
+dokrypt snapshot import ./backup.json
+```
+
+Export uses `anvil_dumpState` to capture the full chain state (accounts, storage, nonces, code). The exported JSON file contains both the metadata and the complete state.
+
+### Diff
+
+```bash
+dokrypt snapshot diff snapshot-a snapshot-b
+```
+
+Shows block number delta and time difference between two snapshots.
+
+## Use Cases
+
+### Test Isolation
+
+```bash
+# Save clean state before each test suite
+dokrypt snapshot save clean
+
+# Run tests...
+
+# Restore for next suite
+dokrypt snapshot restore clean
+```
+
+### Contract Development Workflow
+
+```bash
+# 1. Start clean environment
+dokrypt up --fresh
+
+# 2. Deploy contracts
+forge script scripts/Deploy.s.sol --rpc-url http://localhost:8545
+
+# 3. Snapshot the deployed state
+dokrypt snapshot save deployed
+
+# 4. Iterate on contract interactions
+# ...make changes, test, break things...
+
+# 5. Restore to deployed state
+dokrypt snapshot restore deployed
+
+# 6. Try again with a different approach
+```
+
+### Sharing State with Team
+
+```bash
+# Developer A: Export the state
+dokrypt snapshot export fully-configured ./team-state.json
+
+# Developer B: Import the state
+dokrypt snapshot import ./team-state.json
+dokrypt snapshot restore fully-configured
+```
+
+## Storage
+
+Snapshots are stored at:
+
+```
+~/.dokrypt/snapshots/<project-name>/
+├── my-snapshot.json        # Metadata
+├── before-deploy.json      # Metadata
+└── ...
+```
+
+Each metadata file contains:
+
+```json
+{
+  "name": "my-snapshot",
+  "description": "Fresh deployment",
+  "tags": ["v1.0"],
+  "created_at": "2025-01-15T10:30:00Z",
+  "project": "my-dapp",
+  "chains": {
+    "ethereum": {
+      "name": "ethereum",
+      "engine": "anvil",
+      "chain_id": 31337,
+      "block_number": 42,
+      "state_file": ""
+    }
+  }
+}
+```
+
+<Note>
+  Export/import (`anvil_dumpState`/`anvil_loadState`) is Anvil-specific. If using Hardhat or Geth, basic `evm_snapshot`/`evm_revert` still works, but full state export is not available.
+</Note>

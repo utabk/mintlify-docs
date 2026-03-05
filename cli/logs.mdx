@@ -1,0 +1,62 @@
+---
+title: "dokrypt logs"
+description: "Stream logs from running services."
+---
+
+## Usage
+
+```bash
+dokrypt logs [flags]
+```
+
+## Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `-s, --service` | `string` | — | Stream logs from a specific service |
+| `-f, --follow` | `bool` | `false` | Follow mode — keep streaming new logs |
+| `--tail` | `string` | `50` | Number of recent lines to show |
+| `--since` | `string` | — | Show logs since a duration (e.g., `5m`, `1h`) |
+| `--timestamps` | `bool` | `false` | Show timestamps on each log line |
+
+## Description
+
+Retrieves and optionally streams logs from running service containers. When multiple services are running and no `--service` filter is set, logs from all services are interleaved and prefixed with the service name.
+
+## Examples
+
+### Show recent logs from all services
+
+```bash
+dokrypt logs
+```
+
+### Follow logs in real-time
+
+```bash
+dokrypt logs --follow
+```
+
+### Follow logs from a specific service
+
+```bash
+dokrypt logs -f -s ethereum
+```
+
+### Show last 100 lines with timestamps
+
+```bash
+dokrypt logs --tail 100 --timestamps
+```
+
+### Show logs from the last 5 minutes
+
+```bash
+dokrypt logs --since 5m
+```
+
+### Combine flags
+
+```bash
+dokrypt logs -f -s ipfs --tail 200 --timestamps
+```

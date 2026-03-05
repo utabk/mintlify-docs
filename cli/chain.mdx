@@ -1,0 +1,236 @@
+---
+title: "dokrypt chain"
+description: "Chain manipulation — mine blocks, time-travel, set balances, manage gas, and more."
+---
+
+## Usage
+
+```bash
+dokrypt chain <subcommand> [flags]
+```
+
+## Persistent Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--chain` | `string` | — | Target chain (for multi-chain setups) |
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| [`mine`](#mine) | Mine blocks |
+| [`set-balance`](#set-balance) | Set account balance |
+| [`time-travel`](#time-travel) | Advance chain time |
+| [`set-gas-price`](#set-gas-price) | Set base gas price |
+| [`impersonate`](#impersonate) | Impersonate an account |
+| [`stop-impersonating`](#stop-impersonating) | Stop impersonating |
+| [`reset`](#reset) | Reset chain to genesis or fork |
+| [`info`](#info) | Show chain information |
+
+---
+
+## mine
+
+Mine one or more blocks.
+
+```bash
+dokrypt chain mine [n]
+```
+
+| Argument | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `n` | No | `1` | Number of blocks to mine |
+
+Uses `anvil_mine` (or falls back to calling `evm_mine` in a loop).
+
+### Examples
+
+```bash
+# Mine 1 block
+dokrypt chain mine
+
+# Mine 10 blocks
+dokrypt chain mine 10
+
+# Mine 100 blocks on a specific chain
+dokrypt chain mine 100 --chain polygon
+```
+
+---
+
+## set-balance
+
+Set an account's ETH balance.
+
+```bash
+dokrypt chain set-balance <address> <amount-eth>
+```
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `address` | Yes | Account address (0x-prefixed) |
+| `amount-eth` | Yes | Balance in ETH (e.g., `500`, `10.5`) |
+
+Converts ETH to wei and calls `anvil_setBalance` (or `hardhat_setBalance`).
+
+### Examples
+
+```bash
+dokrypt chain set-balance 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 500
+```
+
+---
+
+## time-travel
+
+Advance the chain's block timestamp into the future.
+
+```bash
+dokrypt chain time-travel <duration>
+```
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `duration` | Yes | Time to advance |
+
+### Supported Duration Formats
+
+| Format | Example | Description |
+|--------|---------|-------------|
+| Go duration | `1h30m` | Standard Go duration |
+| Days | `7d` | 7 days |
+| Hours | `24h` | 24 hours |
+| Minutes | `30m` | 30 minutes |
+| Seconds | `3600` | Raw seconds (no suffix) |
+
+Calls `evm_increaseTime` then mines a block to apply the timestamp change.
+
+### Examples
+
+```bash
+# Advance 1 hour
+dokrypt chain time-travel 1h
+
+# Advance 7 days
+dokrypt chain time-travel 7d
+
+# Advance 3600 seconds
+dokrypt chain time-travel 3600
+```
+
+<Tip>
+  Time-travel is essential for testing vesting schedules, timelocks, and any time-dependent smart contract logic.
+</Tip>
+
+---
+
+## set-gas-price
+
+Set the base gas price for the next blocks.
+
+```bash
+dokrypt chain set-gas-price <gwei>
+```
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `gwei` | Yes | Gas price in gwei |
+
+Calls `anvil_setMinGasPrice` or `hardhat_setNextBlockBaseFeePerGas`.
+
+### Examples
+
+```bash
+dokrypt chain set-gas-price 50
+```
+
+---
+
+## impersonate
+
+Start impersonating an account. Transactions from this address will succeed without requiring the private key.
+
+```bash
+dokrypt chain impersonate <address>
+```
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `address` | Yes | Address to impersonate |
+
+Calls `anvil_impersonateAccount` or `hardhat_impersonateAccount`.
+
+### Examples
+
+```bash
+# Impersonate a Uniswap governance address
+dokrypt chain impersonate 0x1a9C8182C09F50C8318d769245beA52c32BE35BC
+```
+
+---
+
+## stop-impersonating
+
+Stop impersonating an account.
+
+```bash
+dokrypt chain stop-impersonating <address>
+```
+
+### Examples
+
+```bash
+dokrypt chain stop-impersonating 0x1a9C8182C09F50C8318d769245beA52c32BE35BC
+```
+
+---
+
+## reset
+
+Reset the chain to genesis state or to a new fork.
+
+```bash
+dokrypt chain reset [flags]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--fork` | `string` | — | Fork URL to reset to |
+| `--block` | `uint64` | `0` | Fork at a specific block number |
+
+### Examples
+
+```bash
+# Reset to genesis
+dokrypt chain reset
+
+# Reset to a mainnet fork
+dokrypt chain reset --fork https://eth.llamarpc.com --block 18000000
+```
+
+---
+
+## info
+
+Display chain information including chain ID, RPC URL, current block, and block timestamp.
+
+```bash
+dokrypt chain info
+```
+
+### Example Output
+
+```
+Chain: ethereum
+  Chain ID:    31337
+  RPC URL:     http://localhost:8545
+  Block:       42
+  Timestamp:   1705312200
+```
+
+### Multi-chain
+
+```bash
+dokrypt chain info --chain polygon
+```

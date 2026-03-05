@@ -1,0 +1,41 @@
+---
+title: "dokrypt restart"
+description: "Restart services (individual or entire stack)."
+---
+
+## Usage
+
+```bash
+dokrypt restart [flags]
+```
+
+## Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--service` | `string` | — | Restart a specific service only |
+
+## Description
+
+Restarts running containers. If `--service` is specified, restarts only that service. Otherwise, restarts all services in the current project.
+
+## Examples
+
+### Restart all services
+
+```bash
+dokrypt restart
+```
+
+### Restart a specific service
+
+```bash
+dokrypt restart --service ethereum
+```
+
+## Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `No running stack` | No services are running | Run `dokrypt up` first |
+| `Service not found` | The specified service doesn't exist | Check service names with `dokrypt status` |

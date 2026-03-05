@@ -1,0 +1,126 @@
+---
+title: "dokrypt accounts"
+description: "List, fund, impersonate, and generate test accounts."
+---
+
+## Usage
+
+```bash
+dokrypt accounts <subcommand> [flags]
+```
+
+## Persistent Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--chain` | `string` | — | Target chain (for multi-chain setups) |
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| [`list`](#list) | List all accounts with balances |
+| [`fund`](#fund) | Fund an account with ETH |
+| [`impersonate`](#impersonate) | Impersonate an address |
+| [`generate`](#generate) | Generate and fund new accounts |
+
+---
+
+## list
+
+List all accounts with their ETH balances.
+
+```bash
+dokrypt accounts list
+```
+
+Queries `eth_accounts` and `eth_getBalance` for each account. Displays balances in ETH.
+
+### Example Output
+
+```
+#   Address                                    Balance (ETH)
+1   0x70997970C51812dc3A010C7d01b50e0d17dc79C8  10000.00
+2   0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC  10000.00
+3   0x90F79bf6EB2c4f870365E785982E1f101E93b906  10000.00
+...
+```
+
+### Multi-chain
+
+```bash
+dokrypt accounts list --chain polygon
+```
+
+---
+
+## fund
+
+Fund an account with a specific amount of ETH.
+
+```bash
+dokrypt accounts fund <address> <amount-eth>
+```
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `address` | Yes | Account address (0x-prefixed) |
+| `amount-eth` | Yes | Amount in ETH (e.g., `1000`, `50.5`) |
+
+Converts the ETH amount to wei and calls `anvil_setBalance` or `hardhat_setBalance`.
+
+### Examples
+
+```bash
+dokrypt accounts fund 0x1234...abcd 1000
+dokrypt accounts fund 0xabcd...1234 50.5 --chain polygon
+```
+
+---
+
+## impersonate
+
+Impersonate an address, allowing transactions without the private key.
+
+```bash
+dokrypt accounts impersonate <address>
+```
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `address` | Yes | Address to impersonate |
+
+Calls `anvil_impersonateAccount` or `hardhat_impersonateAccount`.
+
+### Examples
+
+```bash
+dokrypt accounts impersonate 0xdead...beef
+```
+
+<Tip>
+  Impersonation is useful for testing interactions with whale accounts or governance addresses on forked networks.
+</Tip>
+
+---
+
+## generate
+
+Generate and fund new deterministic test accounts.
+
+```bash
+dokrypt accounts generate <count>
+```
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `count` | Yes | Number of accounts to generate |
+
+Generates deterministic addresses and funds each with 10,000 ETH.
+
+### Examples
+
+```bash
+dokrypt accounts generate 5
+dokrypt accounts generate 20 --chain ethereum
+```

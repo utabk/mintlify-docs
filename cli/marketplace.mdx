@@ -1,0 +1,199 @@
+---
+title: "dokrypt marketplace"
+description: "Discover, install, and publish templates from the marketplace."
+---
+
+## Usage
+
+```bash
+dokrypt marketplace <subcommand> [flags]
+```
+
+**Aliases:** `market`, `hub`
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| [`search`](#search) | Search for templates |
+| [`browse`](#browse) | Browse by category |
+| [`install`](#install) | Install a template |
+| [`uninstall`](#uninstall) | Remove a template |
+| [`publish`](#publish) | Publish to marketplace |
+| [`info`](#info) | Show template details |
+| [`list`](#list) | List installed templates |
+
+---
+
+## search
+
+Search for templates by name or keyword.
+
+```bash
+dokrypt marketplace search <query> [flags]
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--remote` | `bool` | `false` | Search the remote marketplace hub |
+
+### Examples
+
+```bash
+# Search locally installed templates
+dokrypt marketplace search defi
+
+# Search the remote marketplace
+dokrypt marketplace search defi --remote
+```
+
+### Output
+
+```
+Name            Version   Category   Author    Downloads   Description
+uniswap-v3     1.0.0     defi       dokrypt   1,234       Uniswap V3 clone
+aave-lending   0.5.0     defi       dev123    567         Aave-style lending
+```
+
+---
+
+## browse
+
+Browse templates by category.
+
+```bash
+dokrypt marketplace browse [flags]
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--category` | `string` | — | Filter by category (`defi`, `nft`, `dao`, `token`, `basic`) |
+| `--remote` | `bool` | `false` | Browse the remote marketplace |
+
+### Examples
+
+```bash
+dokrypt marketplace browse
+dokrypt marketplace browse --category defi --remote
+```
+
+---
+
+## install
+
+Install a template from the marketplace or a local directory.
+
+```bash
+dokrypt marketplace install <name> [flags]
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--from` | `string` | — | Install from a local directory instead of marketplace |
+
+### How It Works
+
+1. Checks if the template is already installed
+2. If `--from` is set: reads `template.yaml` from the local directory, validates it, and copies to `~/.dokrypt/marketplace/`
+3. If not: downloads the template archive from the marketplace API, extracts, and installs
+
+### Examples
+
+```bash
+# Install from marketplace
+dokrypt marketplace install uniswap-v3
+
+# Install from local directory
+dokrypt marketplace install my-template --from ./my-template-dir
+```
+
+---
+
+## uninstall
+
+Remove an installed marketplace template.
+
+```bash
+dokrypt marketplace uninstall <name>
+```
+
+### Examples
+
+```bash
+dokrypt marketplace uninstall uniswap-v3
+```
+
+---
+
+## publish
+
+Publish a template to the marketplace hub.
+
+```bash
+dokrypt marketplace publish
+```
+
+Reads `template.yaml` from the current directory and publishes it to the marketplace.
+
+### Requirements
+
+- A valid `template.yaml` in the current directory with: `name`, `version`, `description`, `author`
+- `DOKRYPT_REGISTRY_TOKEN` environment variable set
+
+### Examples
+
+```bash
+cd my-template
+DOKRYPT_REGISTRY_TOKEN=your-token dokrypt marketplace publish
+```
+
+---
+
+## info
+
+Show detailed information about a marketplace template.
+
+```bash
+dokrypt marketplace info <name> [flags]
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--remote` | `bool` | `false` | Fetch from remote marketplace |
+
+Displays: name, version, description, author, category, difficulty, license, tags, chains, services, homepage, repository, downloads, stars, and installation path.
+
+### Examples
+
+```bash
+dokrypt marketplace info uniswap-v3
+dokrypt marketplace info uniswap-v3 --remote
+```
+
+---
+
+## list
+
+List all installed marketplace templates.
+
+```bash
+dokrypt marketplace list
+```
+
+Lists templates installed in `~/.dokrypt/marketplace/`.
+
+### Example Output
+
+```
+Name            Version   Category   Author    Description
+uniswap-v3     1.0.0     defi       dokrypt   Uniswap V3 clone
+my-nft         0.2.0     nft        dev       Custom NFT template
+```

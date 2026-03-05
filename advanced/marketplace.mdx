@@ -1,0 +1,165 @@
+---
+title: "Template Marketplace"
+description: "Discover, install, and publish templates to the Dokrypt marketplace."
+---
+
+## Overview
+
+The Dokrypt marketplace is a registry for sharing project templates. You can browse community templates, install them locally, and publish your own.
+
+**Registry URL:** `https://hub.dokrypt.dev/api/v1`
+
+## Browsing Templates
+
+### Search
+
+```bash
+# Search locally
+dokrypt marketplace search defi
+
+# Search the remote marketplace
+dokrypt marketplace search "uniswap" --remote
+```
+
+### Browse by Category
+
+```bash
+dokrypt marketplace browse --category defi --remote
+```
+
+Categories: `defi`, `nft`, `dao`, `token`, `basic`
+
+### View Details
+
+```bash
+dokrypt marketplace info uniswap-v3 --remote
+```
+
+## Installing Templates
+
+```bash
+# From marketplace
+dokrypt marketplace install uniswap-v3
+
+# From a local directory
+dokrypt marketplace install my-template --from ./my-template-dir
+```
+
+Installed templates are stored in `~/.dokrypt/marketplace/`.
+
+Use installed templates with `dokrypt init`:
+
+```bash
+dokrypt init my-project --template uniswap-v3
+```
+
+## Creating Templates
+
+### 1. Scaffold
+
+```bash
+dokrypt template create my-defi-template
+```
+
+### 2. Add Your Files
+
+```
+my-defi-template/
+├── template.yaml           # Template metadata (required)
+├── dokrypt.yaml.tmpl       # Configuration template
+├── foundry.toml.tmpl       # Foundry config template
+├── README.md.tmpl          # README template
+├── contracts/              # Smart contracts
+│   └── MyContract.sol
+├── test/                   # Tests
+│   └── MyContract.t.sol
+└── scripts/                # Deployment scripts
+    └── deploy.js
+```
+
+### 3. Define Metadata
+
+```yaml
+# template.yaml
+name: my-defi-template
+version: "1.0.0"
+description: "My awesome DeFi template"
+author: your-name
+category: defi
+difficulty: intermediate
+premium: false
+price: free
+tags: [defi, ethereum, amm]
+chains: [ethereum]
+services: [ipfs, blockscout]
+license: MIT
+```
+
+### 4. Use Template Variables
+
+In `.tmpl` files, use Go template syntax:
+
+| Variable | Example Value | Description |
+|----------|---------------|-------------|
+| `{{ .ProjectName }}` | `my-dapp` | User's project name |
+| `{{ .ChainName }}` | `ethereum` | Chain name |
+| `{{ .ChainID }}` | `31337` | Chain ID |
+| `{{ .Engine }}` | `anvil` | Node engine |
+| `{{ .Author }}` | `dev` | Author |
+
+```yaml
+# dokrypt.yaml.tmpl
+version: "1"
+name: {{ .ProjectName }}
+chains:
+  {{ .ChainName }}:
+    engine: {{ .Engine }}
+    chain_id: {{ .ChainID }}
+```
+
+Files ending in `.tmpl` are rendered and the extension is removed. All other files are copied as-is.
+
+### 5. Test Locally
+
+```bash
+dokrypt marketplace install my-template --from ./my-defi-template
+dokrypt init test-project --template my-defi-template
+cd test-project
+dokrypt up
+```
+
+### 6. Publish
+
+```bash
+cd my-defi-template
+DOKRYPT_REGISTRY_TOKEN=your-token dokrypt marketplace publish
+```
+
+## Template Metadata Reference
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | Yes | Unique template name |
+| `version` | `string` | Yes | Semantic version |
+| `description` | `string` | Yes | Short description |
+| `author` | `string` | Yes | Author name |
+| `category` | `string` | No | `defi`, `nft`, `dao`, `token`, `basic` |
+| `difficulty` | `string` | No | `beginner`, `intermediate`, `advanced` |
+| `premium` | `bool` | No | Premium template flag |
+| `price` | `string` | No | Price or "free" |
+| `tags` | `string[]` | No | Searchable tags |
+| `chains` | `string[]` | No | Supported chains |
+| `services` | `string[]` | No | Required services |
+| `license` | `string` | No | License identifier |
+| `homepage` | `string` | No | Project homepage URL |
+| `repository` | `string` | No | Source repository URL |
+
+## Managing Installed Templates
+
+```bash
+# List installed
+dokrypt marketplace list
+
+# Remove
+dokrypt marketplace uninstall uniswap-v3
+```
