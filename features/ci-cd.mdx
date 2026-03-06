@@ -1,0 +1,248 @@
+---
+title: "CI/CD Integration"
+description: "Run Dokrypt tests in GitHub Actions, GitLab CI, and other pipelines."
+---
+
+## Overview
+
+Dokrypt integrates with CI/CD pipelines so your smart contract tests run automatically on every push and pull request. The `dokrypt ci generate` command scaffolds workflow files for your CI provider.
+
+## Quick Start
+
+```bash
+# Generate a GitHub Actions workflow
+dokrypt ci generate --provider github
+
+# Generate with testnet deployment step
+dokrypt ci generate --provider github --deploy
+
+# Generate for GitLab CI
+dokrypt ci generate --provider gitlab
+```
+
+## GitHub Actions
+
+### Generate Workflow
+
+```bash
+dokrypt ci generate --provider github
+```
+
+This creates `.github/workflows/dokrypt.yml`:
+
+```yaml
+name: Dokrypt CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Smart Contract Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Dokrypt
+        run: npm install -g dokrypt@latest
+
+      - name: Verify installation
+        run: dokrypt doctor
+
+      - name: Start environment
+        run: dokrypt up --detach --fresh
+
+      - name: Wait for services
+        run: dokrypt status --wait --timeout 60s
+
+      - name: Run tests
+        run: dokrypt test run --json > test-results.json
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.json
+
+      - name: Stop environment
+        if: always()
+        run: dokrypt down --volumes
+```
+
+### What It Does
+
+1. **Triggers** on push to `main`/`develop` and on pull requests
+2. **Installs** Dokrypt via npm
+3. **Runs** `dokrypt doctor` to verify Docker is available
+4. **Starts** the full environment (`dokrypt up`)
+5. **Runs** all tests with JSON output for machine parsing
+6. **Uploads** test results as a build artifact
+7. **Cleans up** the environment even if tests fail
+
+### With Deployment
+
+```bash
+dokrypt ci generate --provider github --deploy
+```
+
+Adds a `deploy-testnet` job that runs after tests pass on the `main` branch. Requires these GitHub secrets:
+
+| Secret | Description |
+|--------|-------------|
+| `TESTNET_RPC_URL` | RPC endpoint for the target testnet |
+| `DEPLOYER_PRIVATE_KEY` | Private key for contract deployment |
+
+## GitLab CI
+
+### Generate Config
+
+```bash
+dokrypt ci generate --provider gitlab
+```
+
+This creates `.gitlab-ci.yml`:
+
+```yaml
+stages:
+  - test
+
+variables:
+  DOKRYPT_VERSION: "latest"
+
+test:
+  stage: test
+  image: node:20
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - npm install -g dokrypt@${DOKRYPT_VERSION}
+    - dokrypt doctor
+  script:
+    - dokrypt up --detach --fresh
+    - dokrypt status --wait --timeout 60s
+    - dokrypt test run --json > test-results.json
+    - dokrypt down --volumes
+  artifacts:
+    when: always
+    paths:
+      - test-results.json
+```
+
+<Note>
+  GitLab CI requires Docker-in-Docker (`docker:dind`) as a service since Dokrypt uses Docker to run blockchain nodes.
+</Note>
+
+## JSON Test Output
+
+All CI workflows use `--json` output. The format:
+
+```json
+{
+  "total": 4,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "duration": "44ms",
+  "suites": [
+    {
+      "name": "contracts",
+      "tests": [
+        {
+          "name": "test_increment",
+          "status": "passed",
+          "duration": "12ms"
+        }
+      ]
+    }
+  ],
+  "gas_report": {
+    "entries": [
+      {
+        "contract": "Counter",
+        "function": "increment",
+        "avg_gas": 26432,
+        "min_gas": 26432,
+        "max_gas": 26432
+      }
+    ]
+  }
+}
+```
+
+Use this output to:
+- **Fail builds** on test failures (exit code is non-zero)
+- **Track gas usage** over time by comparing `gas_report` across commits
+- **Generate reports** in your CI dashboard
+
+## Validate Workflow
+
+Check that your CI workflow file has the required steps:
+
+```bash
+dokrypt ci validate
+```
+
+```
+✓ Found GitHub Actions workflow: .github/workflows/dokrypt.yml
+✓ Environment startup
+✓ Test execution
+✓ Environment cleanup
+✓ Code checkout
+✓ Workflow is valid
+```
+
+## Custom Pipelines
+
+For CI systems not directly supported, use these commands in your pipeline:
+
+```bash
+# 1. Install
+npm install -g dokrypt
+
+# 2. Verify
+dokrypt doctor
+
+# 3. Start environment
+dokrypt up --detach --fresh
+
+# 4. Wait for readiness
+dokrypt status --wait --timeout 60s
+
+# 5. Run tests
+dokrypt test run --json --gas-report > results.json
+
+# 6. Cleanup (always run, even on failure)
+dokrypt down --volumes
+```
+
+### Requirements
+
+| Requirement | Why |
+|-------------|-----|
+| Docker | Dokrypt runs blockchain nodes as containers |
+| Node.js 18+ | For `npm install -g dokrypt` |
+| 4GB+ RAM | Blockchain nodes need memory |
+
+<Tip>
+  Most CI runners (GitHub Actions `ubuntu-latest`, GitLab shared runners) have Docker pre-installed. If yours doesn't, use a Docker-in-Docker setup.
+</Tip>
+
+## Gas Tracking Across Commits
+
+Compare gas usage between commits by saving the JSON output:
+
+```bash
+# In CI, after tests pass:
+dokrypt test run --json --gas-report > gas-report-$GITHUB_SHA.json
+```
+
+Upload as an artifact to track gas changes over time. If gas increases significantly on a PR, it may indicate an optimization regression.

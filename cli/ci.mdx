@@ -1,0 +1,129 @@
+---
+title: "dokrypt ci"
+description: "Generate and validate CI/CD workflow files."
+---
+
+## Usage
+
+```bash
+dokrypt ci <subcommand> [flags]
+```
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| [`generate`](#generate) | Generate CI/CD workflow files |
+| [`validate`](#validate) | Validate existing CI workflow |
+
+---
+
+## generate
+
+Generate a CI/CD pipeline configuration file for your project.
+
+```bash
+dokrypt ci generate [flags]
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--provider` | `string` | `github` | CI provider: `github`, `gitlab` |
+| `--output` | `string` | `.` | Output directory for generated files |
+| `--deploy` | `bool` | `false` | Include testnet deployment step |
+
+### Supported Providers
+
+| Provider | Flag Value | Generated File |
+|----------|-----------|----------------|
+| GitHub Actions | `github` | `.github/workflows/dokrypt.yml` |
+| GitLab CI | `gitlab` | `.gitlab-ci.yml` |
+
+### Examples
+
+#### GitHub Actions (default)
+
+```bash
+dokrypt ci generate
+```
+
+Generates `.github/workflows/dokrypt.yml` with test job.
+
+#### GitHub Actions with deploy
+
+```bash
+dokrypt ci generate --deploy
+```
+
+Adds a `deploy-testnet` job that runs after tests pass on the `main` branch.
+
+#### GitLab CI
+
+```bash
+dokrypt ci generate --provider gitlab
+```
+
+Generates `.gitlab-ci.yml` with Docker-in-Docker service.
+
+#### Custom output directory
+
+```bash
+dokrypt ci generate --output ./ci-config
+```
+
+### Generated Pipeline Steps
+
+Every generated workflow includes:
+
+1. **Install Dokrypt** via npm
+2. **Run `dokrypt doctor`** to verify prerequisites
+3. **Start environment** with `dokrypt up --detach --fresh`
+4. **Wait for services** with `dokrypt status --wait --timeout 60s`
+5. **Run tests** with `dokrypt test run --json`
+6. **Upload results** as build artifact
+7. **Clean up** with `dokrypt down --volumes` (runs even on failure)
+
+### Config Integration
+
+If your project has a `dokrypt.yaml` with test settings, the generated workflow respects them:
+
+```yaml
+# dokrypt.yaml
+tests:
+  gas_report: true
+  coverage: true
+```
+
+The generated workflow will include `--gas-report --coverage` flags automatically.
+
+---
+
+## validate
+
+Check that an existing CI workflow file contains the required Dokrypt steps.
+
+```bash
+dokrypt ci validate
+```
+
+### What It Checks
+
+| Check | Looks For |
+|-------|-----------|
+| Code checkout | `actions/checkout` |
+| Environment startup | `dokrypt up` |
+| Test execution | `dokrypt test` |
+| Environment cleanup | `dokrypt down` |
+
+### Example Output
+
+```
+✓ Found GitHub Actions workflow: .github/workflows/dokrypt.yml
+✓ Environment startup
+✓ Test execution
+✓ Environment cleanup
+✓ Code checkout
+✓ Workflow is valid
+```

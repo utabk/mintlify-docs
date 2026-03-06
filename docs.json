@@ -54,7 +54,8 @@
               "features/testing",
               "features/chain-utils",
               "features/accounts",
-              "features/bridge"
+              "features/bridge",
+              "features/ci-cd"
             ]
           },
           {
@@ -99,9 +100,10 @@
             ]
           },
           {
-            "group": "Testing",
+            "group": "Testing & CI",
             "pages": [
-              "cli/test"
+              "cli/test",
+              "cli/ci"
             ]
           },
           {
