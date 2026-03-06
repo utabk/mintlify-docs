@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Dokrypt",
   "colors": {
-    "primary": "#f59e0b",
-    "light": "#fbbf24",
-    "dark": "#d97706"
+    "primary": "#7c3aed",
+    "light": "#8b5cf6",
+    "dark": "#6d28d9"
   },
   "favicon": "/favicon.svg",
   "logo": {
