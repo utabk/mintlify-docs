@@ -46,7 +46,7 @@ dokrypt version
 Run Dokrypt directly as a Docker container:
 
 ```bash
-docker pull ghcr.io/dokrypt/dokrypt:latest
+docker pull ghcr.io/dokrypt-org/dokrypt:latest
 ```
 
 Run commands with:
@@ -54,7 +54,7 @@ Run commands with:
 ```bash
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
   -v $(pwd):/workspace -w /workspace \
-  ghcr.io/dokrypt/dokrypt:latest init my-project
+  ghcr.io/dokrypt-org/dokrypt:latest init my-project
 ```
 
 <Warning>
@@ -63,18 +63,21 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 
 ## Install from Binary
 
-Download pre-built binaries from [GitHub Releases](https://github.com/dokrypt/dokrypt/releases).
+Download pre-built binaries from [GitHub Releases](https://github.com/dokrypt-org/dokrypt/releases).
 
 <Tabs>
   <Tab title="macOS / Linux">
     ```bash
-    # Download the latest release (example for Linux x64)
-    curl -L https://github.com/dokrypt/dokrypt/releases/latest/download/dokrypt_linux_amd64.tar.gz -o dokrypt.tar.gz
+    # Linux x64
+    curl -L https://github.com/dokrypt-org/dokrypt/releases/latest/download/dokrypt_0.1.0_linux_amd64.tar.gz | tar xz
+    sudo mv dokrypt /usr/local/bin/
 
-    # Extract
-    tar xzf dokrypt.tar.gz
+    # macOS Apple Silicon
+    curl -L https://github.com/dokrypt-org/dokrypt/releases/latest/download/dokrypt_0.1.0_darwin_arm64.tar.gz | tar xz
+    sudo mv dokrypt /usr/local/bin/
 
-    # Move to PATH
+    # macOS Intel
+    curl -L https://github.com/dokrypt-org/dokrypt/releases/latest/download/dokrypt_0.1.0_darwin_amd64.tar.gz | tar xz
     sudo mv dokrypt /usr/local/bin/
 
     # Verify
@@ -82,7 +85,7 @@ Download pre-built binaries from [GitHub Releases](https://github.com/dokrypt/do
     ```
   </Tab>
   <Tab title="Windows">
-    1. Download `dokrypt_windows_amd64.zip` from [Releases](https://github.com/dokrypt/dokrypt/releases)
+    1. Download `dokrypt_windows_amd64.zip` from [Releases](https://github.com/dokrypt-org/dokrypt/releases)
     2. Extract the ZIP
     3. Add the extracted folder to your system PATH
     4. Open a new terminal and run `dokrypt version`
@@ -94,7 +97,7 @@ Download pre-built binaries from [GitHub Releases](https://github.com/dokrypt/do
 Requires [Go 1.24+](https://go.dev/dl/).
 
 ```bash
-git clone https://github.com/dokrypt/dokrypt.git
+git clone https://github.com/dokrypt-org/dokrypt.git
 cd dokrypt
 make build
 ```
@@ -148,7 +151,7 @@ All checks passed!
 npm update -g dokrypt
 
 # Docker
-docker pull ghcr.io/dokrypt/dokrypt:latest
+docker pull ghcr.io/dokrypt-org/dokrypt:latest
 ```
 
 ## Uninstalling
